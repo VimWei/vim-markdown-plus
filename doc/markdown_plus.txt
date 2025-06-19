@@ -1,0 +1,24 @@
+*markdown-plus.txt*   Enhanced Markdown editing for Vim
+
+vim-markdown-plus                                   *vim-markdown-plus*
+
+Author: VimWei
+
+INTRODUCTION~
+    vim-markdown-plus adds extra features to [vim-markdown](https://github.com/tpope/vim-markdown), making markdown editing more pleasant and productive.
+
+FEATURES~
+    - Easy toggle for bold, italic, strikethrough, code
+    - Link creation, navigation, removal
+    - Checkbox management
+    - Code block helpers
+    - Formatting/rendering helpers
+    - ...
+
+USAGE~
+    See mappings and commands provided by the plugin.
+
+CONFIGURATION~
+    (To be documented as features are added)
+
+vim:tw=78:ft=help:norl: 
