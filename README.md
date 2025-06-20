@@ -1,19 +1,15 @@
 # vim-markdown-plus
 
-**Author:** VimWei
-
 ## Description
 
-This plugin enhances the markdown editing experience in Vim by building upon `tpope/vim-markdown` and integrating ideas from `lervag/wiki.vim`. It provides powerful and intuitive text styling, link management, checkbox toggling, and code block formatting to make writing Markdown notes and documents more efficient.
-
-The goal is to create a seamless workflow with smart, context-aware mappings that feel like a natural extension of Vim.
+This plugin enhances Markdown editing in Vim by providing essential tools missing from tpope/vim-markdown and lervag/wiki.vim. It features intuitive text styling, code block formatting, checkbox toggling, link and list management, and more—all designed for an efficient, seamless workflow with smart, context-aware mappings that naturally extend Vim-markdown.
 
 ## Features
 
 - **Smart Text Styling:** Intelligently toggle **bold**, *italic*, ~~strikethrough~~, and `inline code`. The same mapping adds or removes styling. Works with motions!
+- **Code Block Formatting:** Quickly wrap selections in code blocks with language specifiers.
 - **Advanced Checkbox/Todo Management:** Quickly add, remove, or update checkboxes and task states with intuitive mappings.
 - **Smart Link & Image Toggling:** Instantly add or remove Markdown links (`[text](url)`) and image links (`![alt](url)`) with a single mapping—works as an operator, in visual mode, or on the word under the cursor. Also supports unwrapping links to plain URLs.
-- **Code Block Formatting:** Quickly wrap selections in code blocks with language specifiers.
 - **Seamless List Formatting:** New empty buffers are automatically set to the markdown filetype, enabling instant use of Vim's `gq` formatting for lists and paragraphs. Includes an `:UngqFormat` command to restore original formatting if needed.
 
 ## Mappings
@@ -76,4 +72,4 @@ Then add to your vimrc:
 
 ## Usage
 
-Open a markdown file and use the mappings above. For more detailed information and configuration options, see `:h markdown-plus`. 
+Open a markdown file and use the mappings above. For more detailed information and configuration options, see `:h markdown-plus`.
