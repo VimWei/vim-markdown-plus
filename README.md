@@ -51,8 +51,8 @@ These mappings work in Normal, Visual, and Operator-pending modes.
   - In Visual mode: applies to the selection.
   - If not a link, creates one (prompts for URL if needed); if already a link, removes the link wrapper, keeping the text.
 - `<leader>mpp`: Smartly toggle an image link (`![alt](url)`).
-  - Usage同上，支持操作符、可视、普通模式。
-  - 若不是图片链接则创建，若已有则移除。
+  - Usage is the same as above; supports operator, visual, and normal modes.
+  - If not an image link, one will be created; if one already exists, it will be removed.
 - `<leader>mlu`: Unwrap a Markdown link, leaving only the URL as plain text (`[text](url)` → `url`).
 
 ### List Formatting
@@ -72,7 +72,7 @@ or use Vim's built-in package support:
 
 ```
 mkdir -p ~/.vim/pack/markdown/start
-cd ~/.vim/pack/mardown/start
+cd ~/.vim/pack/markdown/start
 git clone https://github.com/VimWei/vim-markdown-plus.git
 ```
 
