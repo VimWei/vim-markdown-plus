@@ -16,6 +16,7 @@ CONTENTS                                     *markdown-plus-contents*
    2.5 List Formatting..............|markdown-plus-list-formatting|
 3. Commands...........................|markdown-plus-commands|
 4. Options............................|markdown-plus-options|
+5. Markdown Link Conceal Enhancement..|markdown-plus-link-conceal|
 
 ======================================================================
 1. INTRODUCTION                              *markdown-plus-introduction*
@@ -147,6 +148,16 @@ Vim's built-in `gq` command can be used to format lists and paragraphs in markdo
 4. OPTIONS                                      *markdown-plus-options*
 
 (No options yet.)
+
+======================================================================
+5. Markdown Link Conceal Enhancement..|markdown-plus-link-conceal|
+
+==============================================================================
+Markdown Link Conceal Enhancement~                                      *markdown-plus-link-conceal*
+
+This plugin includes an after/syntax/markdown.vim patch that improves the concealment of Markdown links in Vim.
+Links are visually simplified for better readability while editing, with no impact on the underlying text.
+No extra configuration is needed; the enhancement is applied automatically when the plugin is installed.
 
 ======================================================================
 vim:tw=78:ft=help:norl: 

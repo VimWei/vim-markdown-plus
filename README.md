@@ -11,6 +11,7 @@ This plugin enhances Markdown editing in Vim by providing essential tools missin
 - **Advanced Checkbox/Todo Management:** Quickly add, remove, or update checkboxes and task states with intuitive mappings.
 - **Smart Link & Image Toggling:** Instantly add or remove Markdown links (`[text](url)`) and image links (`![alt](url)`) with a single mapping—works as an operator, in visual mode, or on the word under the cursor. Also supports unwrapping links to plain URLs.
 - **Seamless List Formatting:** New empty buffers are automatically set to the markdown filetype, enabling instant use of Vim's `gq` formatting for lists and paragraphs. Includes an `:UngqFormat` command to restore original formatting if needed.
+- **Enhanced Markdown link concealment** for a cleaner, distraction-free editing experience.
 
 ## Mappings
 
