@@ -46,11 +46,11 @@ These mappings work in Normal, Visual, and Operator-pending modes.
 
 ### Link Management
 
-- `<leader>mll`: Smartly toggle a regular Markdown link ([text](url)).
-  - In Normal mode: acts as an operator (g@), so you can use motions (e.g. `<leader>mlliw`).
+- `<leader>mll`: Smartly toggle a regular Markdown link (`[text](url)`).
+  - In Normal mode: acts as an operator, so you can use motions (e.g. `<leader>mlliw`).
   - In Visual mode: applies to the selection.
   - If not a link, creates one (prompts for URL if needed); if already a link, removes the link wrapper, keeping the text.
-- `<leader>mpp`: Smartly toggle an image link (![alt](url)).
+- `<leader>mpp`: Smartly toggle an image link (`![alt](url)`).
   - Usage同上，支持操作符、可视、普通模式。
   - 若不是图片链接则创建，若已有则移除。
 - `<leader>mlu`: Unwrap a Markdown link, leaving only the URL as plain text (`[text](url)` → `url`).
@@ -62,13 +62,19 @@ These mappings work in Normal, Visual, and Operator-pending modes.
 
 ## Installation
 
-Place this plugin under your Vim 'pack' directory, e.g.:
+Install using your favorite package manager, such as vim-plug
 
-    ~/.vim/pack/mydev/opt/vim-markdown-plus
+```
+Plug 'VimWei/vim-markdown-plus'
+```
 
-Then add to your vimrc:
+or use Vim's built-in package support:
 
-    packadd! vim-markdown-plus
+```
+mkdir -p ~/.vim/pack/markdown/start
+cd ~/.vim/pack/mardown/start
+git clone https://github.com/VimWei/vim-markdown-plus.git
+```
 
 ## Usage
 
