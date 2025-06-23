@@ -21,12 +21,11 @@ CONTENTS                                     *markdown-plus-contents*
 ======================================================================
 1. INTRODUCTION                              *markdown-plus-introduction*
 
-`vim-markdown-plus` is a plugin that enhances the markdown editing
-experience in Vim. It builds upon the solid foundation of
-`tpope/vim-markdown` and integrates powerful features inspired by
-`lervag/wiki.vim` and other plugins. The goal is to provide a seamless
-and efficient workflow for writing and managing Markdown files through
-smart, context-aware mappings and commands.
+This plugin enhances Markdown editing in Vim by providing essential tools
+missing from tpope/vim-markdown and lervag/wiki.vim. It features intuitive
+text styling, code block formatting, checkbox toggling, link and list
+management, and more—all designed for an efficient, seamless workflow with
+smart, context-aware mappings that naturally extend Vim-markdown.
 
 ======================================================================
 2. MAPPINGS                                    *markdown-plus-mappings*
@@ -40,33 +39,21 @@ The following mappings are designed to be "smart toggles." They work in
 Normal, Visual, and Operator-pending modes. When used, they will either
 add the specified formatting or remove it if it's already present.
 
-*<Plug>(MarkdownPlusToggleBold)*
-`<leader>mb`
-    Toggles **bold** formatting (`**text**`).
-    In Normal mode, if the cursor is on a word, it styles that word.
-    If the cursor is inside a bolded section, it removes the bold
-    styling from the entire section.
-    As an operator, it styles the text covered by the {motion}.
+Normal and Visual mappings for the current word or selection:
+- `<leader>mb`: Toggle **bold**
+- `<leader>mi`: Toggle *italic*
+- `<leader>ms`: Toggle ~~strikethrough~~
+- `<leader>mc`: Toggle `inline code`
 
-*<Plug>(MarkdownPlusToggleItalic)*
-`<leader>mi`
-    Toggles *italic* formatting (`*text*`).
-    Behaves like the bold toggle.
-
-*<Plug>(MarkdownPlusToggleStrike)*
-`<leader>ms`
-    Toggles ~~strikethrough~~ formatting (`~~text~~`).
-    Behaves like the bold toggle.
-
-*<Plug>(MarkdownPlusToggleCode)*
-`<leader>mc`
-    Toggles `inline code` formatting (`` `text` ``).
-    Behaves like the bold toggle.
+Operator-pending mappings for any text object or motion:
+- `<leader>ob` + {motion}: Toggle **bold**
+- `<leader>oi` + {motion}: Toggle *italic*
+- `<leader>os` + {motion}: Toggle ~~strikethrough~~
+- `<leader>oc` + {motion}: Toggle `inline code`
 
 ----------------------------------------------------------------------
 2.2 Code Blocks                            *markdown-plus-code-blocks*
 
-*<Plug>(MarkdownPlusCodeBlock)*
 `<leader>mcb`
     In Normal mode: wraps the current line in a fenced code block.
     In Visual mode: wraps the selected lines in a fenced code block.
@@ -80,29 +67,21 @@ add the specified formatting or remove it if it's already present.
 
 These mappings provide an efficient way to manage todo lists.
 
-*<Plug>(MarkdownPlusToggleCheckbox)*
 `<leader>mtd`
-    Adds a checkbox (`- [ ] `) to the start of the current line if one
-    does not exist. If a checkbox is present, it will be removed.
+    Adds or removes a checkbox (`- [ ] `).
 
-*<Plug>(MarkdownPlusToggleDone)*
 `<leader>mdd`
-    Toggles the checkbox on the current line between pending `[ ]` and
-    done `[x]`.
+    Toggles the checkbox between pending `[ ]` and done `[x]`.
 
-*<Plug>(MarkdownPlusToggleReject)*
 `<leader>mdr`
-    Toggles the checkbox on the current line between pending `[ ]` and
-    rejected `[-]`.
+    Toggles the checkbox between pending `[ ]` and rejected `[-]`.
 
-*<Plug>(MarkdownPlusMaturityInc)*
 `<leader>mdi`
-    Increases the maturity level of the checkbox on the current line.
+    Increases the maturity level of the checkbox.
     The cycle is: `[ ]` > `[.]` > `[o]` > `[x]`.
 
-*<Plug>(MarkdownPlusMaturityDec)*
 `<leader>mdp`
-    Decreases the maturity level of the checkbox on the current line.
+    Decreases the maturity level of the checkbox.
     The cycle is: `[x]` > `[o]` > `[.]` > `[ ]`.
 
 ----------------------------------------------------------------------
@@ -110,21 +89,18 @@ These mappings provide an efficient way to manage todo lists.
 
 Link and image operations are now fully context-aware and streamlined.
 
-*<Plug>(MarkdownPlusToggleLink)*
 `<leader>mll`
-    Smartly toggles a regular Markdown link ([text](url)):
+    Smartly toggles a regular Markdown link (`[text](url)`):
     - In Normal mode: acts as an operator (g@), so you can use motions (e.g. `<leader>mlliw`).
     - In Visual mode: applies to the selection.
     - If the target is not a link, creates one (prompts for URL if needed).
     - If the target is already a link, removes the link wrapper, keeping the text.
 
-*<Plug>(MarkdownPlusToggleImageLink)*
 `<leader>mpp`
-    Smartly toggles an image link (![alt](url)):
-    - Usage同上，支持操作符、可视、普通模式。
-    - 若不是图片链接则创建，若已有则移除。
+    Smartly toggles an image link (`![alt](url)`):
+    - Usage is the same as above; supports operator, visual, and normal modes.
+    - If not an image link, one will be created; if one already exists, it will be removed.
 
-*<Plug>(MarkdownPlusUnwrapLink)*
 `<leader>mlu`
     Unwraps a Markdown link, leaving only the URL as plain text.
     Example: `[text](url)` → `url`
@@ -132,7 +108,9 @@ Link and image operations are now fully context-aware and streamlined.
 ----------------------------------------------------------------------
 2.5 List Formatting                            *markdown-plus-list-formatting*
 
-Vim's built-in `gq` command can be used to format lists and paragraphs in markdown files. This works instantly in new empty buffers because their filetype is set to markdown automatically by the plugin.
+Vim's built-in `gq` command can be used to format lists and paragraphs in
+markdown files. This works instantly in new empty buffers because their
+filetype is set to markdown automatically by the plugin.
 
 `gq` (Normal/Visual): Format lists and paragraphs using Vim's built-in formatting commands.
 
@@ -152,12 +130,14 @@ Vim's built-in `gq` command can be used to format lists and paragraphs in markdo
 ======================================================================
 5. Markdown Link Conceal Enhancement..|markdown-plus-link-conceal|
 
-==============================================================================
-Markdown Link Conceal Enhancement~                                      *markdown-plus-link-conceal*
+======================================================================
+Markdown Link Conceal Enhancement~          *markdown-plus-link-conceal*
 
-This plugin includes an after/syntax/markdown.vim patch that improves the concealment of Markdown links in Vim.
-Links are visually simplified for better readability while editing, with no impact on the underlying text.
-No extra configuration is needed; the enhancement is applied automatically when the plugin is installed.
+This plugin includes an after/syntax/markdown.vim patch that improves the
+concealment of Markdown links in Vim. Links are visually simplified for better
+readability while editing, with no impact on the underlying text. No extra
+configuration is needed; the enhancement is applied automatically when the
+plugin is installed.
 
 ======================================================================
-vim:tw=78:ft=help:norl: 
+vim:tw=78:ft=help:norl:

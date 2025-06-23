@@ -1,4 +1,4 @@
-function! markdown_plus#link#ToggleLinkAtCursor() range abort
+function! mplus#link#ToggleLinkAtCursor() range abort
   " 首先检查光标位置是否在现有链接范围内
   let link_removed = s:remove_link_at_cursor()
   if !link_removed
@@ -32,7 +32,7 @@ function! markdown_plus#link#ToggleLinkAtCursor() range abort
   endif
 endfunction
 
-function! markdown_plus#link#ToggleImageLinkAtCursor() range abort
+function! mplus#link#ToggleImageLinkAtCursor() range abort
   " 首先检查光标位置是否在现有图片链接范围内
   let link_removed = s:remove_image_link_at_cursor()
   if !link_removed
@@ -132,7 +132,7 @@ function! s:remove_image_link_at_cursor() abort
   return 0
 endfunction
 
-function! markdown_plus#link#RemoveLinkButKeepUrl() abort
+function! mplus#link#RemoveLinkButKeepUrl() abort
   let lnum = line('.')
   let col = col('.')
   let line_text = getline(lnum)

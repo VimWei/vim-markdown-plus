@@ -1,5 +1,7 @@
- function! markdown_plus#CheckAndSetFiletype() abort
+vim9script
+
+export def CheckAndSetFiletype()
   if &buftype ==# '' && &filetype ==# '' && @% ==# '' && bufnr('%') != 1
     setlocal filetype=markdown
   endif
-endfunction
+enddef
