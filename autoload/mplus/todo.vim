@@ -2,15 +2,16 @@ vim9script
 
 import autoload './list.vim' as list
 
-if !exists('g:mplus_checkbox_states')
-    g:mplus_checkbox_states = ['[ ]', '[.]', '[o]', '[x]', '[-]']
-endif
+var checkbox_symbols = get(g:, 'markdown_checkbox_symbols', ' .oOxX-')
+# 生成 todo_status = ['[ ]', '[.]', '[o]', '[O]', '[x]', '[X]', '[-]']
+var todo_status = map(split(checkbox_symbols, '\zs'), (_, c) => '[' .. c .. ']')
+echomsg todo_status
 
-# Toggle todo checkbox for each line in range ----------------------------{{{1
-export def ToggleTodoCheckbox(firstline: number, lastline: number)
+# CheckboxToggle ---------------------------------------------------------{{{1
+export def CheckboxToggle(firstline: number, lastline: number)
     var symbols = list.GetListSymbols()
     var pattern = list.GetListPattern()
-    var state_pattern = '\v' .. join(map(copy(g:mplus_checkbox_states), (i, v) => escape(v, '[]')), '|')
+    var state_pattern = '\\v' .. join(map(copy(todo_status), (i, v) => escape(v, '[]')), '|')
     var lines = getline(firstline, lastline)
     var result = []
     for line in lines
@@ -38,8 +39,8 @@ export def ToggleTodoCheckbox(firstline: number, lastline: number)
     setline(firstline, result)
 enddef
 
-# Toggle done status ([ ] <-> [x]) ---------------------------------------{{{1
-export def ToggleDoneStatus(firstline: number, lastline: number)
+# DoneToggle ([ ] <-> [x]) -----------------------------------------------{{{1
+export def DoneToggle(firstline: number, lastline: number)
     var lines = getline(firstline, lastline)
     var result = []
     var nr = 0
@@ -54,7 +55,7 @@ export def ToggleDoneStatus(firstline: number, lastline: number)
             newline = substitute(line, '\[[^\]]\]', '[x]', '')
         else
             # 非 checkbox，则使用 ToggleTodoCheckbox 将其转换
-            ToggleTodoCheckbox(firstline + nr, firstline + nr)
+            CheckboxToggle(firstline + nr, firstline + nr)
             newline = getline(firstline + nr)
         endif
         add(result, newline)
@@ -63,8 +64,8 @@ export def ToggleDoneStatus(firstline: number, lastline: number)
     setline(firstline, result)
 enddef
 
-# Toggle rejected status ([ ] <-> [-]) -----------------------------------{{{1
-export def ToggleRejectedStatus(firstline: number, lastline: number)
+# SuspendToggle ([ ] <-> [-]) --------------------------------------------{{{1
+export def SuspendToggle(firstline: number, lastline: number)
     var lines = getline(firstline, lastline)
     var result = []
     var nr = 0
@@ -78,7 +79,7 @@ export def ToggleRejectedStatus(firstline: number, lastline: number)
             newline = substitute(line, '\[\([^\]]\)\]', '[-]', '')
         else
             # 非 checkbox，则使用 ToggleTodoCheckbox 将其转换
-            ToggleTodoCheckbox(firstline + nr, firstline + nr)
+            CheckboxToggle(firstline + nr, firstline + nr)
             # 并将其中的 [ ] --> [-]
             newline = getline(firstline + nr)
             newline = substitute(newline, '\[ \]', '[-]', '')
@@ -89,9 +90,13 @@ export def ToggleRejectedStatus(firstline: number, lastline: number)
     setline(firstline, result)
 enddef
 
-# Increase done status ([ ] -> [.] -> [o] -> [O] -> [x]) ------------------------{{{1
-export def IncreaseDoneStatus(firstline: number, lastline: number)
-    var states = ['[ ]', '[.]', '[o]', '[O]', '[x]']
+# MaturityNext ([ ] -> [.] -> [o] -> [O] -> [x]) -------------------------{{{1
+export def MaturityNext(firstline: number, lastline: number)
+    # 排除 [-] 以及 [X]（前提是同时存在 [x] 和 [X]）
+    var states = filter(copy(todo_status), (_, v) => v !=# '[-]')
+    if index(states, '[x]') >= 0 && index(states, '[X]') >= 0
+        states = filter(states, (_, v) => v !=# '[X]')
+    endif
     var lines = getline(firstline, lastline)
     var result = []
     var nr = 0
@@ -110,7 +115,7 @@ export def IncreaseDoneStatus(firstline: number, lastline: number)
             endif
         else
             # 如果没有 checkbox，则使用 ToggleTodoCheckbox 将其转换
-            ToggleTodoCheckbox(firstline + nr, firstline + nr)
+            CheckboxToggle(firstline + nr, firstline + nr)
             add(result, getline(firstline + nr))
         endif
         nr += 1
@@ -118,9 +123,13 @@ export def IncreaseDoneStatus(firstline: number, lastline: number)
     setline(firstline, result)
 enddef
 
-# Decrease done status ([x] -> [O] -> [o] -> [.] -> [ ]) ------------------------{{{1
-export def DecreaseDoneStatus(firstline: number, lastline: number)
-    var states = ['[ ]', '[.]', '[o]', '[O]', '[x]']
+# MaturityPrevious ([x] -> [O] -> [o] -> [.] -> [ ]) ---------------------{{{1
+export def MaturityPrevious(firstline: number, lastline: number)
+    # 排除 [-] 以及 [X]（前提是同时存在 [x] 和 [X]）
+    var states = filter(copy(todo_status), (_, v) => v !=# '[-]')
+    if index(states, '[x]') >= 0 && index(states, '[X]') >= 0
+        states = filter(states, (_, v) => v !=# '[X]')
+    endif
     var lines = getline(firstline, lastline)
     var result = []
     var nr = 0
@@ -143,7 +152,7 @@ export def DecreaseDoneStatus(firstline: number, lastline: number)
             endif
         else
             # 如果没有 checkbox，则使用 ToggleTodoCheckbox 将其转换
-            ToggleTodoCheckbox(firstline + nr, firstline + nr)
+            CheckboxToggle(firstline + nr, firstline + nr)
             add(result, getline(firstline + nr))
         endif
         nr += 1

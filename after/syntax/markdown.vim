@@ -12,10 +12,7 @@ execute
 
 # Checkbox Syntax Fix ----------------------------------------------------{{{1
 # Correct the checkbox syntax highlighting issue from
-# https://github.com/tpope/vim-markdown/issues/212
-# By defining a specific, higher-priority match for checkboxes, we ensure
-# they are not misidentified as part of a link by the more general
-# markdownLinkText rule that is defined in the original syntax file.
+# fix: https://github.com/tpope/vim-markdown/issues/212
 
 # Allow user to customize checkbox symbols, default: [ ] [.] [o] [O] [x] [X] [-]
 g:markdown_checkbox_symbols = get(g:, 'markdown_checkbox_symbols', ' .oOxX-')

@@ -5,51 +5,7 @@ import autoload './links.vim' as links
 
 # Text Styling and Surrounding -------------------------------------------{{{1
 
-export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
-    const style_interval = empty(range_info) ? IsInRange() : range_info
-    if !empty(style_interval)
-      const style = keys(style_interval)[0]
-      const interval = values(style_interval)[0]
-
-      # Remove left delimiter
-      const lA = interval[0][0]
-      const cA = interval[0][1]
-      const lineA = getline(lA)
-      var newline = strcharpart(lineA, 0,
-              \ cA - 1 - len(constants.TEXT_STYLES_DICT[style].open_delim))
-              \ .. strcharpart(lineA, cA - 1)
-      setline(lA, newline)
-
-      # Remove right delimiter
-      const lB = interval[1][0]
-      var cB = interval[1][1]
-
-      # Update cB.
-      # If lA == lB, then The value of cB may no longer be valid since
-      # we shortened the line
-      if lA == lB
-        cB = cB - len(constants.TEXT_STYLES_DICT[style].open_delim)
-      endif
-
-      # Check if you hit a delimiter or a blank line OR if you hit a delimiter
-      # but you also have a blank like
-      # If you have open intervals (as we do), then cB < lenght_of_line, If
-      # not, then don't do anything. This behavior is compliant with
-      # vim-surround
-      const lineB = getline(lB)
-      if  cB < len(lineB)
-        # You have delimters
-        newline = strcharpart(lineB, 0, cB)
-              \ .. strcharpart(lineB,
-                \ cB + len(constants.TEXT_STYLES_DICT[style].close_delim))
-      else
-        # You hit the end of paragraph
-        newline = lineB
-      endif
-      setline(lB, newline)
-    endif
-enddef
-
+# SurroundSmart ----------------------------------------------------------{{{2
 export def SurroundSmart(style: string, type: string = '')
   # It tries to preserve the style.
   # In general, you may want to pass constant.TEXT_STYLES_DICT as a parameter.
@@ -243,6 +199,53 @@ export def SurroundSmart(style: string, type: string = '')
   endif
 enddef
 
+# RemoveSurrounding ------------------------------------------------------{{{2
+export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
+    const style_interval = empty(range_info) ? IsInRange() : range_info
+    if !empty(style_interval)
+      const style = keys(style_interval)[0]
+      const interval = values(style_interval)[0]
+
+      # Remove left delimiter
+      const lA = interval[0][0]
+      const cA = interval[0][1]
+      const lineA = getline(lA)
+      var newline = strcharpart(lineA, 0,
+              \ cA - 1 - len(constants.TEXT_STYLES_DICT[style].open_delim))
+              \ .. strcharpart(lineA, cA - 1)
+      setline(lA, newline)
+
+      # Remove right delimiter
+      const lB = interval[1][0]
+      var cB = interval[1][1]
+
+      # Update cB.
+      # If lA == lB, then The value of cB may no longer be valid since
+      # we shortened the line
+      if lA == lB
+        cB = cB - len(constants.TEXT_STYLES_DICT[style].open_delim)
+      endif
+
+      # Check if you hit a delimiter or a blank line OR if you hit a delimiter
+      # but you also have a blank like
+      # If you have open intervals (as we do), then cB < lenght_of_line, If
+      # not, then don't do anything. This behavior is compliant with
+      # vim-surround
+      const lineB = getline(lB)
+      if  cB < len(lineB)
+        # You have delimters
+        newline = strcharpart(lineB, 0, cB)
+              \ .. strcharpart(lineB,
+                \ cB + len(constants.TEXT_STYLES_DICT[style].close_delim))
+      else
+        # You hit the end of paragraph
+        newline = lineB
+      endif
+      setline(lB, newline)
+    endif
+enddef
+
+# RemoveAll --------------------------------------------------------------{{{2
 export def RemoveAll()
   # TODO could be refactored to increase speed, but it may not be necessary
   const range_info = IsInRange()
@@ -290,6 +293,7 @@ enddef
 
 # Block-Level Manipulation -----------------------------------------------{{{1
 
+# SetQuoteBlock ----------------------------------------------------------{{{2
 export def SetQuoteBlock(type: string = '')
 
   # We set cA=1 and cB = len(geline(B)) so we pretend that we are working
@@ -302,6 +306,7 @@ export def SetQuoteBlock(type: string = '')
   endfor
 enddef
 
+# UnsetQuoteBlock --------------------------------------------------------{{{2
 export def UnsetQuoteBlock()
   const open_regex = values(constants.QUOTEBLOCK_OPEN_DICT)[0]
   # Line that starts with everything but '\s*>'-ish
@@ -336,67 +341,7 @@ enddef
 
 # Syntax and Positional Analysis -----------------------------------------{{{1
 
-export def IsLess(l1: list<number>, l2: list<number>): bool
-  # Lexicographic comparison on common prefix, i.e.for two vectors in N^n and
-  # N^m you compare their projections onto the smaller subspace.
-
-  var min_length = min([len(l1), len(l2)])
-  var result = false
-
-  for ii in range(min_length)
-    if l1[ii] < l2[ii]
-      result = true
-      break
-    elseif l1[ii] > l2[ii]
-      result = false
-      break
-    endif
-  endfor
-  return result
-enddef
-
-export def IsGreater(l1: list<number>, l2: list<number>): bool
-  # Lexicographic comparison on common prefix, i.e.for two vectors in N^n and
-  # N^m you compare their projections onto the smaller subspace.
-
-  var min_length = min([len(l1), len(l2)])
-  var result = false
-
-  for ii in range(min_length)
-    if l1[ii] > l2[ii]
-      result = true
-      break
-    elseif l1[ii] < l2[ii]
-      result = false
-      break
-    endif
-  endfor
-  return result
-enddef
-
-export def IsEqual(l1: list<number>, l2: list<number>): bool
-  var min_length = min([len(l1), len(l2)])
-  return l1[: min_length - 1] == l2[: min_length - 1]
-enddef
-
-export def IsBetweenMarks(A: string, B: string): bool
-    var cursor_pos = getpos(".")
-    var A_pos = getcharpos(A)
-    var B_pos = getcharpos(B)
-
-    if IsGreater(A_pos, B_pos)
-      var tmp = B_pos
-      B_pos = A_pos
-      A_pos = tmp
-    endif
-
-    # Check 'A_pos <= cursor_pos <= B_pos'
-    var result = (IsGreater(cursor_pos, A_pos) || IsEqual(cursor_pos, A_pos))
-      && (IsGreater(B_pos, cursor_pos) || IsEqual(B_pos, cursor_pos))
-
-    return result
-enddef
-
+# IsInRange --------------------------------------------------------------{{{2
 export def IsInRange(): dict<list<list<number>>>
   # Return a dict like {'markdownCode': [[21, 19], [22, 21]]}.
   # The returned intervals are open.
@@ -507,16 +452,84 @@ export def IsInRange(): dict<list<list<number>>>
   return return_val
 enddef
 
+# IsLess -----------------------------------------------------------------{{{2
+export def IsLess(l1: list<number>, l2: list<number>): bool
+  # Lexicographic comparison on common prefix, i.e.for two vectors in N^n and
+  # N^m you compare their projections onto the smaller subspace.
+
+  var min_length = min([len(l1), len(l2)])
+  var result = false
+
+  for ii in range(min_length)
+    if l1[ii] < l2[ii]
+      result = true
+      break
+    elseif l1[ii] > l2[ii]
+      result = false
+      break
+    endif
+  endfor
+  return result
+enddef
+
+# IsGreater --------------------------------------------------------------{{{2
+export def IsGreater(l1: list<number>, l2: list<number>): bool
+  # Lexicographic comparison on common prefix, i.e.for two vectors in N^n and
+  # N^m you compare their projections onto the smaller subspace.
+
+  var min_length = min([len(l1), len(l2)])
+  var result = false
+
+  for ii in range(min_length)
+    if l1[ii] > l2[ii]
+      result = true
+      break
+    elseif l1[ii] < l2[ii]
+      result = false
+      break
+    endif
+  endfor
+  return result
+enddef
+
+# IsEqual ----------------------------------------------------------------{{{2
+export def IsEqual(l1: list<number>, l2: list<number>): bool
+  var min_length = min([len(l1), len(l2)])
+  return l1[: min_length - 1] == l2[: min_length - 1]
+enddef
+
+# IsBetweenMarks ---------------------------------------------------------{{{2
+export def IsBetweenMarks(A: string, B: string): bool
+    var cursor_pos = getpos(".")
+    var A_pos = getcharpos(A)
+    var B_pos = getcharpos(B)
+
+    if IsGreater(A_pos, B_pos)
+      var tmp = B_pos
+      B_pos = A_pos
+      A_pos = tmp
+    endif
+
+    # Check 'A_pos <= cursor_pos <= B_pos'
+    var result = (IsGreater(cursor_pos, A_pos) || IsEqual(cursor_pos, A_pos))
+      && (IsGreater(B_pos, cursor_pos) || IsEqual(B_pos, cursor_pos))
+
+    return result
+enddef
+
 # General Utilities & Helpers --------------------------------------------{{{1
 
+# Echoerr ----------------------------------------------------------------{{{2
 export def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[markdown_plus] {msg}' | echohl None
 enddef
 
+# Echowarn ---------------------------------------------------------------{{{2
 export def Echowarn(msg: string)
   echohl WarningMsg | echom $'[markdown_plus] {msg}' | echohl None
 enddef
 
+# FormatWithoutMoving ----------------------------------------------------{{{2
 export def FormatWithoutMoving(a: number = 0, b: number = 0)
   # To be used for formatting through autocmds
   var view = winsaveview()
@@ -542,11 +555,13 @@ export def FormatWithoutMoving(a: number = 0, b: number = 0)
   winrestview(view)
 enddef
 
+# KeysFromValue ----------------------------------------------------------{{{2
 export def KeysFromValue(dict: dict<string>, target_value: string): list<string>
  # Given a value, return all the keys associated to it
  return keys(filter(copy(dict), $'v:val == "{escape(target_value, "\\")}"'))
 enddef
 
+# GetTextObject ----------------------------------------------------------{{{2
 export def GetTextObject(textobject: string): dict<any>
   # You pass a text object like 'iw' and it returns the text
   # associated to it along with the start and end positions.
@@ -577,6 +592,7 @@ export def GetTextObject(textobject: string): dict<any>
   return {text: text, start: start_pos, end: end_pos}
 enddef
 
+# IsOnProp ---------------------------------------------------------------{{{2
 export def IsOnProp(): dict<any>
   var prop = prop_find({type: prop_name, 'col': col('.')}, 'b')
   if has_key(prop, 'id')

@@ -1,39 +1,36 @@
 vim9script
 
 import autoload 'mplus/code.vim' as code
-import autoload 'mplus/checkbox.vim' as checkbox
-# import autoload 'mplus/utils.vim' as utils
+import autoload 'mplus/todo.vim' as todo
+import autoload 'mplus/utils.vim' as utils
 
 # Code Blocks ------------------------------------------------------------{{{1
 
-## Smart Toggle Wrap selected lines in code block
 command! -range ToggleCodeBlock call code.ToggleCodeBlock(<line1>, <line2>)
-vnoremap <leader>mcb :ToggleCodeBlock<CR>
-nnoremap <leader>mcb :ToggleCodeBlock<CR>
+vnoremap <leader>cb :ToggleCodeBlock<CR>
+nnoremap <leader>cb :ToggleCodeBlock<CR>
 
-# Checkboxes -------------------------------------------------------------{{{1
+# Todo -------------------------------------------------------------------{{{1
 
-# Toggle Todo checkbox
-command! -range ToggleTodoCheckbox call checkbox.ToggleTodoCheckbox(<line1>, <line2>)
-vnoremap <leader>mtd :ToggleTodoCheckbox<CR>
-nnoremap <leader>mtd :ToggleTodoCheckbox<CR>
+command! -range TodoCheckboxToggle call todo.CheckboxToggle(<line1>, <line2>)
+vnoremap <leader>tdc :TodoCheckboxToggle<CR>
+nnoremap <leader>tdc :TodoCheckboxToggle<CR>
 
-# 独立 checkbox 状态切换命令与映射
-command! -range ToggleDoneStatus call checkbox.ToggleDoneStatus(<line1>, <line2>)
-vnoremap <leader>mdd :ToggleDoneStatus<CR>
-nnoremap <leader>mdd :ToggleDoneStatus<CR>
+command! -range TodoDoneToggle call todo.DoneToggle(<line1>, <line2>)
+vnoremap <leader>tdd :TodoDoneToggle<CR>
+nnoremap <leader>tdd :TodoDoneToggle<CR>
 
-command! -range ToggleRejectedStatus call checkbox.ToggleRejectedStatus(<line1>, <line2>)
-vnoremap <leader>mdr :ToggleRejectedStatus<CR>
-nnoremap <leader>mdr :ToggleRejectedStatus<CR>
+command! -range TodoSuspendToggle call todo.SuspendToggle(<line1>, <line2>)
+vnoremap <leader>tds :TodoSuspendToggle<CR>
+nnoremap <leader>tds :TodoSuspendToggle<CR>
 
-command! -range IncreaseDoneStatus call checkbox.IncreaseDoneStatus(<line1>, <line2>)
-vnoremap <leader>mdn :IncreaseDoneStatus<CR>
-nnoremap <leader>mdn :IncreaseDoneStatus<CR>
+command! -range TodoMaturityNext call todo.MaturityNext(<line1>, <line2>)
+vnoremap <leader>tdn :TodoMaturityNext<CR>
+nnoremap <leader>tdn :TodoMaturityNext<CR>
 
-command! -range DecreaseDoneStatus call checkbox.DecreaseDoneStatus(<line1>, <line2>)
-vnoremap <leader>mdp :DecreaseDoneStatus<CR>
-nnoremap <leader>mdp :DecreaseDoneStatus<CR>
+command! -range TodoMaturityPrevious call todo.MaturityPrevious(<line1>, <line2>)
+vnoremap <leader>tdp :TodoMaturityPrevious<CR>
+nnoremap <leader>tdp :TodoMaturityPrevious<CR>
 
 finish
 

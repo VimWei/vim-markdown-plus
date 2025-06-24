@@ -2,6 +2,7 @@ vim9script
 
 import autoload 'mplus/constants.vim' as constants
 
+# ToggleCodeBlock --------------------------------------------------------{{{1
 export def ToggleCodeBlock(firstline: number, lastline: number)
   var found_codeblock = false
   for lnum in range(firstline, lastline)
@@ -25,6 +26,7 @@ export def ToggleCodeBlock(firstline: number, lastline: number)
   endif
 enddef
 
+# SetBlock ---------------------------------------------------------------{{{1
 export def SetBlock(firstline: number, lastline: number, type: string = '')
   const open_block = constants.CODEBLOCK_OPEN_DICT
   const close_block = constants.CODEBLOCK_CLOSE_DICT
@@ -40,6 +42,7 @@ export def SetBlock(firstline: number, lastline: number, type: string = '')
   append(firstline - 1, lines)
 enddef
 
+# UnsetBlock -------------------------------------------------------------{{{1
 export def UnsetBlock(firstline: number, lastline: number)
   # 收集所有选区内涉及的 codeblock 区间（含包裹行）
   var codeblock_ranges = {}
