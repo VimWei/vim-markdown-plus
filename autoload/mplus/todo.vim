@@ -3,9 +3,8 @@ vim9script
 import autoload './list.vim' as list
 
 var checkbox_symbols = get(g:, 'markdown_checkbox_symbols', ' .oOxX-')
-# 生成 todo_status = ['[ ]', '[.]', '[o]', '[O]', '[x]', '[X]', '[-]']
+# var todo_status = ['[ ]', '[.]', '[o]', '[O]', '[x]', '[X]', '[-]']
 var todo_status = map(split(checkbox_symbols, '\zs'), (_, c) => '[' .. c .. ']')
-echomsg todo_status
 
 # CheckboxToggle ---------------------------------------------------------{{{1
 export def CheckboxToggle(firstline: number, lastline: number)
@@ -31,7 +30,7 @@ export def CheckboxToggle(firstline: number, lastline: number)
             var rest = strpart(content, len(full_prefix_match))
             new_line = indent .. prefix .. ' [ ] ' .. rest
         else
-            # 不是列表项，转换为带 todo 标记的列表项（使用第一个列表符号）
+            # 转换为带 todo 标记的列表项
             new_line = indent .. symbols[0] .. ' [ ] ' .. substitute(content, '^\s*', '', '')
         endif
         add(result, new_line)
