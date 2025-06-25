@@ -34,7 +34,8 @@ export def SetBlock(firstline: number, lastline: number, type: string = '')
   var lines = []
   add(lines, $'{keys(open_block)[0]}')
   for lnum in range(firstline, lastline)
-    add(lines, '  ' .. getline(lnum)->substitute('^\\s*', '', ''))
+    # add(lines, '  ' .. getline(lnum)->substitute('^\\s*', '', ''))
+    add(lines, getline(lnum))
   endfor
   add(lines, keys(close_block)[0])
 
@@ -100,12 +101,12 @@ export def UnsetBlock(firstline: number, lastline: number)
   for lA in sorted_lAs
     var lB = codeblock_ranges[lA]
     # 先去缩进
-    if lA < lB - 1
-      for lnum_content in range(lA + 1, lB - 1)
-        var new_line = getline(lnum_content)->substitute('^[ \t]*', '', '')
-        setline(lnum_content, new_line)
-      endfor
-    endif
+    # if lA < lB - 1
+    #   for lnum_content in range(lA + 1, lB - 1)
+    #     var new_line = getline(lnum_content)->substitute('^[ \t]*', '', '')
+    #     setline(lnum_content, new_line)
+    #   endfor
+    # endif
     # 再删除包裹符号（从后往前）
     deletebufline('%', lB)
     deletebufline('%', lA)
