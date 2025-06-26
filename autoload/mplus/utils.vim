@@ -5,6 +5,60 @@ import autoload './links.vim' as links
 
 # Text Styling and Surrounding -------------------------------------------{{{1
 
+# ToggleSurround ---------------------------------------------------------{{{2
+export def ToggleSurround(style: string, type: string = '')
+  var range_info = IsInRange()
+  echomsg '[ToggleSurround] style: ' .. style
+  echomsg '[ToggleSurround] range_info: ' .. string(range_info)
+  if !empty(range_info) && keys(range_info)[0] == style
+    echomsg '[ToggleSurround] Will call RemoveSurrounding'
+    RemoveSurrounding(range_info)
+  else
+    echomsg '[ToggleSurround] Will call SurroundSmart'
+    SurroundSmart(style, type)
+  endif
+enddef
+
+# SurroundSimple ----------------------------------------------------------{{{2
+export def SurroundSimple(style: string, type: string = '')
+
+  if getcharpos("'[") == getcharpos("']")
+    return
+  endif
+
+  var open_delim = constants.TEXT_STYLES_DICT[style].open_delim
+  var close_delim = constants.TEXT_STYLES_DICT[style].close_delim
+
+  # line and column of point A
+  var lA = line("'[")
+  var cA = charcol("'[")
+
+  # line and column of point B
+  var lB = line("']")
+  var cB = charcol("']")
+
+  var toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
+  var fromB = close_delim .. strcharpart(getline(lB), cB)
+
+  # If on the same line
+  if lA == lB
+    # Overwrite everything that is in the middle
+    var A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
+    setline(lA, toA .. A_to_B .. fromB)
+  else
+    var lineA = toA .. strcharpart(getline(lA), cA - 1)
+    setline(lA, lineA)
+    var lineB = strcharpart(getline(lB), 0, cB - 1) .. fromB
+    setline(lB, lineB)
+    var ii = 1
+    # Fix intermediate lines
+    while lA + ii < lB
+      setline(lA + ii, getline(lA + ii))
+      ii += 1
+    endwhile
+  endif
+enddef
+
 # SurroundSmart ----------------------------------------------------------{{{2
 export def SurroundSmart(style: string, type: string = '')
   # It tries to preserve the style.
@@ -54,11 +108,11 @@ export def SurroundSmart(style: string, type: string = '')
 
   # line and column of point A
   var lA = line("'[")
-  var cA = type == 'line' ? 1 : col("'[")
+  var cA = type == 'line' ? 1 : charcol("'[")
 
   # line and column of point B
   var lB = line("']")
-  var cB = type == 'line' ? len(getline(lB)) : col("']")
+  var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
 
   # -------- SMART DELIMITERS BEGIN ---------------------------
   # We check conditions like the following and we adjust the style
@@ -202,6 +256,7 @@ enddef
 # RemoveSurrounding ------------------------------------------------------{{{2
 export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
     const style_interval = empty(range_info) ? IsInRange() : range_info
+    echomsg '[RemoveSurrounding] style_interval: ' .. string(style_interval)
     if !empty(style_interval)
       const style = keys(style_interval)[0]
       const interval = values(style_interval)[0]
@@ -217,13 +272,13 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
 
       # Remove right delimiter
       const lB = interval[1][0]
-      var cB = interval[1][1]
-
-      # Update cB.
-      # If lA == lB, then The value of cB may no longer be valid since
-      # we shortened the line
-      if lA == lB
-        cB = cB - len(constants.TEXT_STYLES_DICT[style].open_delim)
+      const cB = interval[1][1]
+      echomsg '[RemoveSurrounding] style: ' .. style
+      echomsg '[RemoveSurrounding] lA: ' .. lA .. ', cA: ' .. cA .. ', lB: ' .. lB .. ', cB: ' .. cB
+      # 防御性检查，避免非法行号
+      if lA <= 0 || lB <= 0
+        Echowarn('RemoveSurrounding: invalid line number')
+        return
       endif
 
       # Check if you hit a delimiter or a blank line OR if you hit a delimiter
@@ -231,15 +286,41 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       # If you have open intervals (as we do), then cB < lenght_of_line, If
       # not, then don't do anything. This behavior is compliant with
       # vim-surround
-      const lineB = getline(lB)
-      if  cB < len(lineB)
-        # You have delimters
-        newline = strcharpart(lineB, 0, cB)
-              \ .. strcharpart(lineB,
-                \ cB + len(constants.TEXT_STYLES_DICT[style].close_delim))
+      const open_len = strchars(constants.TEXT_STYLES_DICT[style].open_delim)
+      const close_len = strchars(constants.TEXT_STYLES_DICT[style].close_delim)
+      if lA == lB
+        const lineA = getline(lA)
+        echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
+        echomsg '[RemoveSurrounding] cA: ' .. cA .. ', cB: ' .. cB .. ', open_len: ' .. open_len .. ', close_len: ' .. close_len
+        echomsg '[RemoveSurrounding] content: ' .. strcharpart(lineA, cA - 1, cB - cA - 1)
+        var newline = strcharpart(lineA, 0, cA - 1 - open_len)
+              .. strcharpart(lineA, cA - 1, cB - cA - 1)
+              .. strcharpart(lineA, cB + close_len - 1)
+        echomsg '[RemoveSurrounding] lineA(after): ' .. newline
+        setline(lA, newline)
       else
         # You hit the end of paragraph
-        newline = lineB
+        const lineA = getline(lA)
+        echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
+        var newline = strcharpart(lineA, 0,
+                \ cA - 1 - strchars(constants.TEXT_STYLES_DICT[style].open_delim))
+                \ .. strcharpart(lineA, cA - 1)
+        echomsg '[RemoveSurrounding] lineA(after): ' .. newline
+        setline(lA, newline)
+        # Remove right delimiter
+        var cB2 = cB
+        const lineB = getline(lB)
+        echomsg '[RemoveSurrounding] lineB(before): ' .. lineB
+        if  cB2 < strchars(lineB)
+          newline = strcharpart(lineB, 0, cB2)
+                \ .. strcharpart(lineB,
+                  \ cB2 + strchars(constants.TEXT_STYLES_DICT[style].close_delim))
+          echomsg '[RemoveSurrounding] lineB(after): ' .. newline
+        else
+          newline = lineB
+          echomsg '[RemoveSurrounding] lineB(after, unchanged): ' .. newline
+        endif
+        setline(lB, newline)
       endif
       setline(lB, newline)
     endif
@@ -348,7 +429,7 @@ export def IsInRange(): dict<list<list<number>>>
   #
   # NOTE: Due to that bundled markdown syntax file returns 'markdownItalic' and
   # 'markdownBold' regardless is the delimiters are '_' or '*', we need the
-  # StarOrUnrescore() function
+  # StarOrUnderscore() function
 
   def StarOrUnderscore(text_style: string): string
     var text_style_refined = ''
@@ -375,13 +456,57 @@ export def IsInRange(): dict<list<list<number>>>
 
   # Main function start here
   # text_style comes from vim-markdown
-  const text_style = synIDattr(synID(line("."), col("."), 1), "name")
+  var text_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+
+  # Delimiter smart detection logic (non-recursive, move cursor to content area if found)
+  if text_style =~ 'Delimiter'
+    echomsg '[IsInRange] On Delimiter, try left/right (non-recursive, move cursor)'
+    var orig_line = line('.')
+    var orig_col = col('.')
+    var style_base = text_style->substitute('Delimiter$', '', '')
+    var open_len = has_key(constants.TEXT_STYLES_DICT, style_base) ? strchars(constants.TEXT_STYLES_DICT[style_base].open_delim) : 2
+    var close_len = has_key(constants.TEXT_STYLES_DICT, style_base) ? strchars(constants.TEXT_STYLES_DICT[style_base].close_delim) : 2
+    var found = 0
+    # Try left within delimiter length
+    for i in range(1, open_len)
+      if orig_col - i < 1 | continue | endif
+      call cursor(orig_line, orig_col - i)
+      var left_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+      echomsg '[IsInRange] left_style: ' .. left_style
+      if left_style !~ 'Delimiter' && left_style != ''
+        found = 1
+        break
+      endif
+    endfor
+    # Try right within delimiter length (only if not found on left)
+    if !found
+      for i in range(1, close_len)
+        call cursor(orig_line, orig_col + i)
+        var right_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+        echomsg '[IsInRange] right_style: ' .. right_style
+        if right_style !~ 'Delimiter' && right_style != ''
+          found = 1
+          break
+        endif
+      endfor
+    endif
+    # If found, cursor is now at content area; do not restore
+    if found
+      text_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+    else
+      # If not found, keep original position and style
+      call cursor(orig_line, orig_col)
+    endif
+  endif
+
   const text_style_adjusted =
     text_style == 'markdownItalic' || text_style == 'markdownBold'
-     ? StarOrUnderscore(synIDattr(synID(line("."), col("."), 1), "name"))
-     : synIDattr(synID(line("."), col("."), 1), "name")
+     ? StarOrUnderscore(text_style)
+     : text_style
   var return_val = {}
 
+  echomsg '[IsInRange] text_style: ' .. text_style
+  echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
   if !empty(text_style_adjusted)
       && index(keys(constants.TEXT_STYLES_DICT), text_style_adjusted) != -1
 
@@ -416,7 +541,7 @@ export def IsInRange(): dict<list<list<number>>>
     var close_delim_pos = searchpos($'\V{close_delim}', 'nW')
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0]
-    current_style = synIDattr(synID(line("."), col("."), 1), "name")
+    current_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
 
     while current_style != $'{text_style}Delimiter'
         && current_style != 'htmlEndTag'
@@ -433,20 +558,28 @@ export def IsInRange(): dict<list<list<number>>>
         : blank_line_pos
       endif
       setcursorcharpos(first_met)
-      current_style = synIDattr(synID(line("."), col("."), 1), "name")
+      current_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
     endwhile
 
     # If we hit a blank line, then we take the previous line and last column,
     # to keep consistency in returning open-intervals
     if getline(line('.')) =~ '^$'
       first_met[0] = first_met[0] - 1
-      first_met[1] = len(getline(first_met[0]))
-    else
-      first_met[1] -= 1
+      first_met[1] = strchars(getline(first_met[0]))
     endif
 
     setcursorcharpos(saved_curpos[1 : 2])
-    return_val =  {[text_style_adjusted]: [open_delim_pos, first_met]}
+    const open_len = strchars(open_delim)
+    const close_len = strchars(close_delim)
+    var content_start = open_delim_pos[1] + open_len
+    var content_end = first_met[1] - 1
+    return_val =  {[text_style_adjusted]: [[open_delim_pos[0], content_start], [first_met[0], content_end]]}
+    echomsg '[IsInRange] open_delim: ' .. open_delim
+    echomsg '[IsInRange] open_delim_pos: ' .. string(open_delim_pos)
+    echomsg '[IsInRange] close_delim: ' .. close_delim
+    echomsg '[IsInRange] close_delim_pos: ' .. string(close_delim_pos)
+    echomsg '[IsInRange] first_met: ' .. string(first_met)
+    echomsg '[IsInRange] return_val: ' .. string(return_val)
   endif
 
   return return_val

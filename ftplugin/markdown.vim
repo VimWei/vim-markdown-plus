@@ -1,5 +1,7 @@
 vim9script
 
+g:maplocalleader = "\<space>m"
+
 import autoload 'mplus/code.vim' as code
 import autoload 'mplus/todo.vim' as todo
 import autoload 'mplus/utils.vim' as utils
@@ -12,36 +14,52 @@ nnoremap <leader>cb :ToggleCodeBlock<CR>
 
 # Todo -------------------------------------------------------------------{{{1
 
-command! -range TodoCheckboxToggle call todo.CheckboxToggle(<line1>, <line2>)
-vnoremap <leader>tdc :TodoCheckboxToggle<CR>
-nnoremap <leader>tdc :TodoCheckboxToggle<CR>
+var todo_cmds = [
+  {name: 'TodoCheckboxToggle', func: 'CheckboxToggle', key: 'tdc'},
+  {name: 'TodoDoneToggle', func: 'DoneToggle', key: 'tdd'},
+  {name: 'TodoSuspendToggle', func: 'SuspendToggle', key: 'tds'},
+  {name: 'TodoMaturityNext', func: 'MaturityNext', key: 'tdn'},
+  {name: 'TodoMaturityPrevious', func: 'MaturityPrevious', key: 'tdp'},
+]
 
-command! -range TodoDoneToggle call todo.DoneToggle(<line1>, <line2>)
-vnoremap <leader>tdd :TodoDoneToggle<CR>
-nnoremap <leader>tdd :TodoDoneToggle<CR>
-
-command! -range TodoSuspendToggle call todo.SuspendToggle(<line1>, <line2>)
-vnoremap <leader>tds :TodoSuspendToggle<CR>
-nnoremap <leader>tds :TodoSuspendToggle<CR>
-
-command! -range TodoMaturityNext call todo.MaturityNext(<line1>, <line2>)
-vnoremap <leader>tdn :TodoMaturityNext<CR>
-nnoremap <leader>tdn :TodoMaturityNext<CR>
-
-command! -range TodoMaturityPrevious call todo.MaturityPrevious(<line1>, <line2>)
-vnoremap <leader>tdp :TodoMaturityPrevious<CR>
-nnoremap <leader>tdp :TodoMaturityPrevious<CR>
-
-finish
+for item in todo_cmds
+  execute $'command! -range {item.name} call todo.{item.func}(<line1>, <line2>)'
+  execute $'vnoremap <leader>{item.key} :{item.name}<CR>'
+  execute $'nnoremap <leader>{item.key} :{item.name}<CR>'
+endfor
 
 # Text Formatting --------------------------------------------------------{{{1
 
 # 智能加粗/斜体/删除线/行内代码，支持 text-object 操作
-for [key, func] in [['b', 'Bold'], ['i', 'Italic'], ['s', 'Strikethrough'], ['c', 'InlineCode']]
-  nmap <buffer> <silent> "<leader>m{key}" mplus.text["Toggle{func}Normal"]
-  xmap <buffer> <silent> "<leader>m{key}" {-> mplus.text["Toggle{func}Visual"]()}
-  nmap <buffer> <silent> "<leader>o{key}" $":let &opfunc = mplus.text['Toggle{func}Operator'] | normal! g@"
+def SetSurroundOpFunc(style: string)
+  &l:opfunc = function(utils.ToggleSurround, [style])
+enddef
+
+var styles = [
+  {plug: '<Plug>MarkdownBold',    key: 'b', style: 'markdownBold'},
+  {plug: '<Plug>MarkdownItalic',  key: 'i', style: 'markdownItalic'},
+  {plug: '<Plug>MarkdownStrike',  key: 's', style: 'markdownStrike'},
+  {plug: '<Plug>MarkdownCode',    key: 'c', style: 'markdownCode'},
+]
+
+for item in styles
+  # <localleader> 映射
+  if !hasmapto(item.plug)
+    if empty(mapcheck($'<localleader>{item.key}', 'n', 1))
+      execute $'nnoremap <buffer> <localleader>{item.key} {item.plug}'
+    endif
+    if empty(mapcheck($'<localleader>{item.key}', 'x', 1))
+      execute $'xnoremap <buffer> <localleader>{item.key} {item.plug}'
+    endif
+  endif
+
+  # <Plug> 实现
+  if empty(maparg(item.plug))
+    execute $'noremap <script> <buffer> {item.plug} <ScriptCmd>SetSurroundOpFunc("{item.style}")<cr>g@'
+  endif
 endfor
+
+finish
 
 # Link Management --------------------------------------------------------{{{1
 
