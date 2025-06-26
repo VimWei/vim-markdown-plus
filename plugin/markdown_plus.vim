@@ -17,4 +17,10 @@ if has('win32') && !has("patch-9.1.1270")
   finish
 endif
 
+# filetype=markdown ------------------------------------------------------{{{1
 nmap <leader>mm :set ft=markdown<CR>
+
+augroup MarkdownPlusNewBufferFiletype
+  autocmd!
+  autocmd BufEnter * mplus#CheckAndSetFiletype()
+augroup END

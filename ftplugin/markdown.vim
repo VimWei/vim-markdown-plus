@@ -86,11 +86,5 @@ nnoremap <leader>mlu :call mplus#link#RemoveLinkButKeepUrl()<CR>
 
 # List Formatting --------------------------------------------------------{{{1
 
-# 自动将新建空 buffer 设置为 markdown，从而可以对 list 使用 gqip 格式化命令
-augroup MarkdownPlusNewBufferFiletype
-  autocmd!
-  autocmd BufEnter * mplus#CheckAndSetFiletype()
-augroup END
-
 # UngqFormat: 恢复被 gq 格式化的文档格式
-command! -range=% UngqFormat mplus#list#UngqFormat(<line1>, <line2>)
+command! -range=% UngqFormat mplus#gqformat#UngqFormat(<line1>, <line2>)
