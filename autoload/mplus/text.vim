@@ -1,222 +1,350 @@
-" PUBLIC API: Markdown Style Toggles -------------------------------------{{{1
-" Bold -------------------------------------------------------------------{{{2
-function! mplus#text#ToggleBoldNormal()
-    call s:toggle_style_normal('**')
-endfunction
-function! mplus#text#ToggleBoldVisual() range
-    call s:toggle_style_visual('**')
-endfunction
-function! mplus#text#ToggleBoldOperator(type, ...) range
-    call s:toggle_style_operator('**', a:type, a:000)
-endfunction
+vim9script
 
-" Italic -----------------------------------------------------------------{{{2
-function! mplus#text#ToggleItalicNormal()
-    call s:toggle_style_normal('*')
-endfunction
-function! mplus#text#ToggleItalicVisual() range
-    call s:toggle_style_visual('*')
-endfunction
-function! mplus#text#ToggleItalicOperator(type, ...) range
-    call s:toggle_style_operator('*', a:type, a:000)
-endfunction
+import autoload './constants.vim' as constants
+import autoload './utils.vim' as utils
+import autoload './links.vim' as links
 
-" Strikethrogh -----------------------------------------------------------{{{2
-function! mplus#text#ToggleStrikethroughNormal()
-    call s:toggle_style_normal('~~')
-endfunction
-function! mplus#text#ToggleStrikethroughVisual() range
-    call s:toggle_style_visual('~~')
-endfunction
-function! mplus#text#ToggleStrikethroughOperator(type, ...) range
-    call s:toggle_style_operator('~~', a:type, a:000)
-endfunction
+# ToggleSurround ---------------------------------------------------------{{{1
+export def ToggleSurround(style: string, type: string = '')
+  echomsg '------------------------------------------------'
+  echomsg '[ToggleSurround] start: ' .. style
+  var range_info = utils.IsInRange()
+  echomsg '[ToggleSurround] range_info: ' .. string(range_info)
+  if !empty(range_info) && keys(range_info)[0] == style
+    echomsg '[ToggleSurround] Will call RemoveSurrounding'
+    RemoveSurrounding(range_info)
+  else
+    echomsg '[ToggleSurround] Will call SurroundSmart'
+    SurroundSmart(style, type)
+  endif
+  # call Redir#redir('messages', 0, 0, 0)
+enddef
 
-" InlineCode -------------------------------------------------------------{{{2
-function! mplus#text#ToggleInlineCodeNormal()
-    call s:toggle_style_normal('`')
-endfunction
-function! mplus#text#ToggleInlineCodeVisual() range
-    call s:toggle_style_visual('`')
-endfunction
-function! mplus#text#ToggleInlineCodeOperator(type, ...) range
-    call s:toggle_style_operator('`', a:type, a:000)
-endfunction
+# Surround ---------------------------------------------------------------{{{1
+# SurroundSimple ---------------------------------------------------------{{{2
+export def SurroundSimple(style: string, type: string = '')
 
-" INTERNAL IMPLEMENTATION ------------------------------------------------{{{1
-function! s:toggle_style_normal(style) " ---------------------------------{{{2
-    let lnum = line('.')
-    let line_text = getline(lnum)
-    let stylelen = len(a:style)
-    let curcol = col('.') - 1
+  if getcharpos("'[") == getcharpos("']")
+    return
+  endif
 
-    let pos = 0
-    while pos < len(line_text)
-        let s = match(line_text, a:style, pos)
-        if s == -1 | break | endif
-        let e = match(line_text, a:style, s + stylelen)
-        if e == -1 | break | endif
-        let style_start = s
-        let style_end = e + stylelen
-        " 只要光标在 style 区间内（包括 style 字符本身）
-        if curcol >= style_start && curcol < style_end
-            let inner_len = style_end - style_start - 2 * stylelen
-            if inner_len < 0
-                let inner = ''
-            else
-                let inner = strpart(line_text, style_start + stylelen, inner_len)
-            endif
-            let new_line = strpart(line_text, 0, style_start) . inner . strpart(line_text, style_end)
-            call setline(lnum, new_line)
-            call cursor(lnum, style_start + 1)
-            return
-        endif
-        let pos = e + stylelen
+  var open_delim = constants.TEXT_STYLES_DICT[style].open_delim
+  var close_delim = constants.TEXT_STYLES_DICT[style].close_delim
+
+  # line and column of point A
+  var lA = line("'[")
+  var cA = charcol("'[")
+
+  # line and column of point B
+  var lB = line("']")
+  var cB = charcol("']")
+
+  var toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
+  var fromB = close_delim .. strcharpart(getline(lB), cB)
+
+  # If on the same line
+  if lA == lB
+    # Overwrite everything that is in the middle
+    var A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
+    setline(lA, toA .. A_to_B .. fromB)
+  else
+    var lineA = toA .. strcharpart(getline(lA), cA - 1)
+    setline(lA, lineA)
+    var lineB = strcharpart(getline(lB), 0, cB - 1) .. fromB
+    setline(lB, lineB)
+    var ii = 1
+    # Fix intermediate lines
+    while lA + ii < lB
+      setline(lA + ii, getline(lA + ii))
+      ii += 1
     endwhile
+  endif
+enddef
 
-    " 如果光标不在任何 style 区间内，才对 <cword> 加 style
-    let word = expand('<cword>')
-    if word != ''
-        let sel_start = -1
-        let sel_end = -1
-        let pos = 0
-        while pos < len(line_text)
-            let idx = match(line_text, '\V' . word, pos)
-            if idx == -1
-                break
-            endif
-            if curcol >= idx && curcol < idx + len(word)
-                let sel_start = idx
-                let sel_end = idx + len(word)
-                break
-            endif
-            let pos = idx + 1
-        endwhile
-        if sel_start >= 0
-            let new_line = strpart(line_text, 0, sel_start) . a:style . word . a:style . strpart(line_text, sel_end)
-            call setline(lnum, new_line)
-            call cursor(lnum, sel_start + stylelen + 1)
-        endif
+# SurroundSmart ----------------------------------------------------------{{{2
+export def SurroundSmart(style: string, type: string = '')
+  # It tries to preserve the style.
+  # In general, you may want to pass constant.TEXT_STYLES_DICT as a parameter.
+
+  def RemoveDelimiters(to_overwrite: string): string
+    # Used for removing all the delimiters between A and B.
+
+    var overwritten = to_overwrite
+
+    # This is needed to remove all existing text-styles between A and B, i.e. we
+    # want to override existing styles.
+    # Note that we don't want to remove links between A and B
+    const styles_to_remove = keys(constants.TEXT_STYLES_DICT)
+      ->filter("v:val !~ '\\v(markdownLinkText)'")
+
+    for k in styles_to_remove
+      # Remove existing open delimiters
+      var regex = constants.TEXT_STYLES_DICT[k].open_regex
+      var to_remove = constants.TEXT_STYLES_DICT[k].open_delim
+      overwritten = overwritten
+  ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
+
+      # Remove existing close delimiters
+      regex = constants.TEXT_STYLES_DICT[k].close_regex
+      to_remove = constants.TEXT_STYLES_DICT[k].close_delim
+      overwritten = overwritten
+  ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
+    endfor
+    return overwritten
+  enddef
+
+  if getcharpos("'[") == getcharpos("']")
+    return
+  endif
+
+  if index(keys(constants.TEXT_STYLES_DICT), style) == -1
+    utils.Echoerr($'Style "{style}" not found in dict')
+    return
+  endif
+
+  var open_delim = constants.TEXT_STYLES_DICT[style].open_delim
+  var open_regex = constants.TEXT_STYLES_DICT[style].open_regex
+
+  var close_delim = constants.TEXT_STYLES_DICT[style].close_delim
+  var close_regex = constants.TEXT_STYLES_DICT[style].close_regex
+
+  # line and column of point A
+  var lA = line("'[")
+  var cA = type == 'line' ? 1 : charcol("'[")
+
+  # line and column of point B
+  var lB = line("']")
+  var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
+
+  # -------- SMART DELIMITERS BEGIN ---------------------------
+  # We check conditions like the following and we adjust the style
+  # delimiters
+  # We assume that the existing style ranges are (C,D) and (E,F) and we want
+  # to place (A,B) as in the picture
+  #
+  # -E-------A------------
+  # ------------F---------
+  # ------------C------B--
+  # --------D-------------
+  #
+  # We want to get:
+  #
+  # -E------FA------------
+  # ----------------------
+  # ------------------BC--
+  # --------D-------------
+  #
+  # so that all the styles are visible
+
+  # Check if A falls in an existing interval
+  cursor(lA, cA)
+  var old_right_delimiter = ''
+  var found_interval = utils.IsInRange()
+  if !empty(found_interval)
+    var found_style = keys(found_interval)[0]
+    old_right_delimiter = constants.TEXT_STYLES_DICT[found_style].open_delim
+  endif
+
+  # Try to preserve overlapping ranges by moving the delimiters.
+  # For example. If we have the pairs (C, D) and (E,F) as it follows:
+  # ------C-------D------E------F
+  #  and we want to add (A, B) as it follows
+  # ------C---A---D-----E--B---F
+  #  then the results becomes a mess. The idea is to move D before A and E
+  #  after E, thus obtaining:
+  # ------C--DA-----------BE----F
+  #
+  # TODO:
+  # If you don't want to try to automatically adjust existing ranges, then
+  # remove 'old_right_delimiter' and 'old_left_limiter' from what follows,
+  # AND don't remove anything between A and B
+  #
+  # TODO: the following is specifically designed for markdown, so if you use
+  # for other languages, you may need to modify it!
+  #
+  var toA = ''
+  if !empty(found_interval) && old_right_delimiter != open_delim
+    toA = strcharpart(getline(lA), 0, cA - 1)->substitute('\s*$', '', '')
+      .. $'{old_right_delimiter} {open_delim}'
+  elseif !empty(found_interval) && old_right_delimiter == open_delim
+    # If the found interval is a text style equal to the one you want to set,
+    # i.e. you would end up in adjacent delimiters like ** ** => Remove both
+    toA = strcharpart(getline(lA), 0, cA - 1)
+  else
+    # Force space
+    toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
+  endif
+
+  # Check if B falls in an existing interval
+  cursor(lB, cB)
+  var old_left_delimiter = ''
+  found_interval = utils.IsInRange()
+  if !empty(found_interval)
+    var found_style = keys(found_interval)[0]
+    old_left_delimiter = constants.TEXT_STYLES_DICT[found_style].close_delim
+  endif
+
+  var fromB = ''
+  if !empty(found_interval) && old_left_delimiter != close_delim
+    # Move old_left_delimiter "outside"
+    fromB = $'{close_delim} {old_left_delimiter}'
+      .. strcharpart(getline(lB), cB)->substitute('^\s*', '', '')
+  elseif !empty(found_interval) && old_left_delimiter == close_delim
+      fromB = strcharpart(getline(lB), cB)
+  else
+    fromB = close_delim .. strcharpart(getline(lB), cB)
+  endif
+
+  # ------- SMART DELIMITERS PART END -----------
+  # We have compute the partial strings until A and the partial string that
+  # leaves B. Existing delimiters are set.
+  # Next, we have to adjust the text between A and B, by removing all the
+  # possible delimiters left between them.
+
+  # If on the same line
+  if lA == lB
+    # Overwrite everything that is in the middle
+    var A_to_B = ''
+    A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
+
+    # Overwrite existing styles in the middle by removing old delimiters
+    if style != 'markdownCode'
+      A_to_B = RemoveDelimiters(A_to_B)
     endif
-endfunction
+    # echom $'toA: ' .. toA
+    # echom $'fromB: ' .. fromB
+    # echom $'A_to_B:' .. A_to_B
+    # echom '----------\n'
 
-function! s:toggle_style_visual(style) range " ---------------------------{{{2
-    let [_, lnum1, col1, _] = getpos("'<")
-    let [_, lnum2, col2, _] = getpos("'>")
-    if lnum1 == lnum2
-        if col1 > col2
-            let [col1, col2] = [col2, col1]
-        endif
-        let line = getline(lnum1)
-        let before = strpart(line, 0, col1 - 1)
-        let selected = strpart(line, col1 - 1, col2 - col1 + 1)
-        let after = strpart(line, col2)
-        let stylelen = len(a:style)
-        if selected[:stylelen-1] ==# a:style && selected[-stylelen:] ==# a:style
-            let new_selected = strpart(selected, stylelen, len(selected) - 2 * stylelen)
-        else
-            let new_selected = a:style . selected . a:style
-        endif
-        let new_line = before . new_selected . after
-        call setline(lnum1, new_line)
-    else
-        echo "Multi-line selection is not supported for inline styles."
+    # Set the whole line
+    setline(lA, toA .. A_to_B .. fromB)
+
+  else
+    # Set line A
+    var afterA = strcharpart(getline(lA), cA - 1)
+
+    if style != 'markdownCode'
+      afterA = RemoveDelimiters(afterA)
     endif
-endfunction
 
-function! s:toggle_style_operator(style, type, ...) range " --------------{{{2
-    if a:type ==# 'line' || a:type ==# 'block'
-        let lnum1 = a:firstline
-        let lnum2 = a:lastline
-        let lines = getline(lnum1, lnum2)
-        let text = join(lines, "\n")
-        let stylelen = len(a:style)
-        if text[:stylelen-1] ==# a:style && text[-stylelen:] ==# a:style
-            let text = strpart(text, stylelen, len(text) - 2 * stylelen)
-        else
-            let text = a:style . text . a:style
-        endif
-        let new_lines = split(text, "\n")
-        call setline(lnum1, new_lines)
-    elseif a:type ==# 'char'
-        let lnum1 = a:firstline
-        let lnum2 = a:lastline
-        let col1 = a:1
-        let col2 = a:2
-        let lines = getline(lnum1, lnum2)
-        let first = lines[0]
-        let last = lines[-1]
-        let before = strpart(first, 0, col1 - 1)
-        let after = strpart(last, col2)
-        let text = join(lines, "\n")
-        let stylelen = len(a:style)
-        if text[:stylelen-1] ==# a:style && text[-stylelen:] ==# a:style
-            let text = strpart(text, stylelen, len(text) - 2 * stylelen)
-        else
-            let text = a:style . text . a:style
-        endif
-        let new_lines = split(before . text . after, "\n")
-        call setline(lnum1, new_lines)
+    var lineA = toA .. afterA
+    setline(lA, lineA)
+
+    # Set line B
+    var beforeB = strcharpart(getline(lB), 0, cB)
+
+    if style != 'markdownCode'
+      beforeB = RemoveDelimiters(beforeB)
     endif
-endfunction
 
-" HELPER FUNCTIONS -------------------------------------------------------{{{1
-function! s:remove_style_at_cursor(style, lnum, col) abort " -------------{{{2
-    let line_text = getline(a:lnum)
-    let style_escaped = escape(a:style, '~*_')
-    let pattern = style_escaped . '.\{-}' . style_escaped
-    let start = 0
-    while 1
-        let match_pos = matchstrpos(line_text, pattern, start)
-        if empty(match_pos[0])
-            break
-        endif
-        let [matched, mstart, mend] = [match_pos[0], match_pos[1], match_pos[2]]
-        if a:col-1 >= mstart && a:col-1 < mend
-            let text_without_style = strpart(line_text, mstart + len(a:style), mend - mstart - 2 * len(a:style))
-            let new_line = strpart(line_text, 0, mstart) . text_without_style . strpart(line_text, mend)
-            call setline(a:lnum, new_line)
-            call cursor(a:lnum, mstart + 1)
-            return 1
-        endif
-        if mend <= start
-            break
-        endif
-        let start = mend
+    var lineB = beforeB .. fromB
+    setline(lB, lineB)
+
+    # Fix intermediate lines
+    var ii = 1
+    while lA + ii < lB
+      var middleline = getline(lA + ii)
+
+      if style != 'markdownCode'
+        middleline = RemoveDelimiters(middleline)
+      endif
+
+      setline(lA + ii, middleline)
+      ii += 1
     endwhile
-    return 0
-endfunction
+  endif
+enddef
 
-function! s:remove_style_if_overlaps(style, lnum1, col1, lnum2, col2) abort " {{{2
-    let style_escaped = escape(a:style, '~*_')
-    let pattern = style_escaped . '.\{-}' . style_escaped
-    let line_text = getline(a:lnum1)
-    let start = 0
-    while 1
-        let match_pos = matchstrpos(line_text, pattern, start)
-        if empty(match_pos[0])
-            break
-        endif
-        let [matched, mstart, mend] = [match_pos[0], match_pos[1], match_pos[2]]
-        if a:lnum1 == a:lnum2
-            if (a:col1-1 <= mend && a:col2-1 >= mstart)
-                let text_without_style = strpart(line_text, mstart + len(a:style), mend - mstart - 2 * len(a:style))
-                let new_line = strpart(line_text, 0, mstart) . text_without_style . strpart(line_text, mend)
-                call setline(a:lnum1, new_line)
-                return 1
-            endif
-        else
-            if a:col1-1 <= mstart
-                let text_without_style = strpart(line_text, mstart + len(a:style), mend - mstart - 2 * len(a:style))
-                let new_line = strpart(line_text, 0, mstart) . text_without_style . strpart(line_text, mend)
-                call setline(a:lnum1, new_line)
-                return 1
-            endif
-        endif
-        if mend <= start
-            break
-        endif
-        let start = mend
-    endwhile
-    return 0
-endfunction
+# Remove -----------------------------------------------------------------{{{1
+# RemoveSurrounding ------------------------------------------------------{{{2
+export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
+    const style_interval = empty(range_info) ? utils.IsInRange() : range_info
+    echomsg '[RemoveSurrounding] style_interval: ' .. string(style_interval)
+    if !empty(style_interval)
+      const style = keys(style_interval)[0]
+      const interval = values(style_interval)[0]
+
+      # Remove left delimiter
+      const lA = interval[0][0]
+      const cA = interval[0][1]
+      const lineA = getline(lA)
+      var newline = strcharpart(lineA, 0,
+              \ cA - 1 - len(constants.TEXT_STYLES_DICT[style].open_delim))
+              \ .. strcharpart(lineA, cA - 1)
+      setline(lA, newline)
+
+      # Remove right delimiter
+      const lB = interval[1][0]
+      var cB = interval[1][1]
+
+      # Update cB.
+      # If lA == lB, then The value of cB may no longer be valid since
+      # we shortened the line
+      if lA == lB
+        cB = cB - len(constants.TEXT_STYLES_DICT[style].open_delim)
+      endif
+
+      # Check if you hit a delimiter or a blank line OR if you hit a delimiter
+      # but you also have a blank like
+      # If you have open intervals (as we do), then cB < lenght_of_line, If
+      # not, then don't do anything. This behavior is compliant with
+      # vim-surround
+      const lineB = getline(lB)
+      if  cB < len(lineB)
+        # You have delimters
+        newline = strcharpart(lineB, 0, cB)
+              \ .. strcharpart(lineB,
+                \ cB + len(constants.TEXT_STYLES_DICT[style].close_delim))
+      else
+        # You hit the end of paragraph
+        newline = lineB
+      endif
+      setline(lB, newline)
+    endif
+enddef
+
+# RemoveAll --------------------------------------------------------------{{{2
+export def RemoveAll()
+  # TODO could be refactored to increase speed, but it may not be necessary
+  const range_info = utils.IsInRange()
+  const prop_info = utils.IsOnProp()
+  const syn_info = synIDattr(synID(line("."), col("."), 1), "name")
+  const is_quote_block = getline('.') =~ '^>\s'
+
+  # If on plain text, do nothing, just execute a normal! <BS>
+  if empty(range_info) && empty(prop_info)
+        && syn_info != 'markdownCodeBlock' && !is_quote_block
+    exe "norm! \<BS>"
+    return
+  endif
+
+  # Start removing the text props
+  if !empty(prop_info)
+    prop_remove({'id': prop_info.id, 'all': 0})
+    return
+  endif
+
+  # Check markdownCodeBlocks
+  if syn_info == 'markdownCodeBlock'
+    UnsetBlock(syn_info)
+    return
+  endif
+
+  # Text styles removal setup
+  if !empty(range_info)
+    const target = keys(range_info)[0]
+    var text_styles = copy(constants.TEXT_STYLES_DICT)
+    unlet text_styles['markdownLinkText']
+
+    if index(keys(text_styles), target) != -1
+      RemoveSurrounding(range_info)
+    elseif target == 'markdownLinkText'
+      links.RemoveLink()
+    endif
+    return
+  endif
+
+  if is_quote_block
+    UnsetQuoteBlock()
+  endif
+enddef

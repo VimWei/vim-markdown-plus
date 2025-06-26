@@ -4,7 +4,7 @@ g:maplocalleader = "\<space>m"
 
 import autoload 'mplus/code.vim' as code
 import autoload 'mplus/todo.vim' as todo
-import autoload 'mplus/utils.vim' as utils
+import autoload 'mplus/text.vim' as text
 
 # Code Blocks ------------------------------------------------------------{{{1
 
@@ -32,7 +32,7 @@ endfor
 
 # 智能加粗/斜体/删除线/行内代码，支持 text-object 操作
 def SetSurroundOpFunc(style: string)
-  &l:opfunc = function(utils.ToggleSurround, [style])
+  &l:opfunc = function(text.ToggleSurround, [style])
 enddef
 
 var styles = [
@@ -43,7 +43,7 @@ var styles = [
 ]
 
 for item in styles
-  # <localleader> 映射
+  # 映射到 <Plug>
   if !hasmapto(item.plug)
     if empty(mapcheck($'<localleader>{item.key}', 'n', 1))
       execute $'nnoremap <buffer> <localleader>{item.key} {item.plug}'

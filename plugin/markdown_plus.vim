@@ -6,13 +6,15 @@ vim9script
 #              comprehensive Markdown editing. Works seamlessly with both plugins to provide
 #              advanced text styling, link manipulation, checkbox management, and formatting tools.
 
+if exists('g:loaded_markdown_plus')
+  finish
+endif
+g:loaded_markdown_plus = true
+
 if has('win32') && !has("patch-9.1.1270")
   # Needs Vim version 9.0 and above
   echoerr "[markdown-plus] You need at least Vim 9.1.1270"
   finish
 endif
 
-if exists('g:loaded_markdown_plus')
-  finish
-endif
-g:loaded_markdown_plus = true
+nmap <leader>mm :set ft=markdown<CR>
