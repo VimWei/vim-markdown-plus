@@ -263,19 +263,26 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
     if !empty(style_interval)
       const style = keys(style_interval)[0]
       const interval = values(style_interval)[0]
+      echomsg '[RemoveSurrounding] style: ' .. style
 
       # Remove left delimiter
       const lA = interval[0][0]
       const cA = interval[0][1]
+      echomsg '[RemoveSurrounding] lA: ' .. lA .. ', cA: ' .. cA
+
       const lineA = getline(lA)
+      echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
+
       var newline = strcharpart(lineA, 0,
               \ cA - 1 - len(constants.TEXT_STYLES_DICT[style].open_delim))
               \ .. strcharpart(lineA, cA - 1)
       setline(lA, newline)
+      echomsg '[RemoveSurrounding] lineA(after): ' .. getline(lA)
 
       # Remove right delimiter
       const lB = interval[1][0]
       var cB = interval[1][1]
+      echomsg '[RemoveSurrounding] lB: ' .. lB .. ', cB: ' .. cB
 
       # Update cB.
       # If lA == lB, then The value of cB may no longer be valid since
@@ -290,6 +297,8 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       # not, then don't do anything. This behavior is compliant with
       # vim-surround
       const lineB = getline(lB)
+      echomsg '[RemoveSurrounding] lineB(before): ' .. lineB
+
       if  cB < len(lineB)
         # You have delimters
         newline = strcharpart(lineB, 0, cB)
@@ -300,6 +309,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
         newline = lineB
       endif
       setline(lB, newline)
+      echomsg '[RemoveSurrounding] lineB(after): ' .. getline(lB)
     endif
 enddef
 
