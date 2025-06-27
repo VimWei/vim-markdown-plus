@@ -59,7 +59,14 @@ for item in styles
   endif
 endfor
 
-finish
+# List Formatting --------------------------------------------------------{{{1
+
+# 恢复被 gq 格式化的文档格式
+# :UngqFormat：处理整个文件。
+# :'<,'>UngqFormat：处理当前选区。
+command! -range=% UngqFormat call mplus#gqformat#UngqFormat(<line1>, <line2>)
+
+finish # -----------------------------------------------------------------{{{1
 
 # Link Management --------------------------------------------------------{{{1
 
@@ -83,8 +90,3 @@ onoremap <silent> <leader>mpp :normal v<CR>
 # Link manipulation
 # "u"nwrap link, keep URL as text
 nnoremap <leader>mlu :call mplus#link#RemoveLinkButKeepUrl()<CR>
-
-# List Formatting --------------------------------------------------------{{{1
-
-# UngqFormat: 恢复被 gq 格式化的文档格式
-command! -range=% UngqFormat mplus#gqformat#UngqFormat(<line1>, <line2>)

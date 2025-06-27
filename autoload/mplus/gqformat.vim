@@ -1,5 +1,5 @@
 " UngqFormat -------------------------------------------------------------{{{1
-function! mplus#list#UngqFormat(start_line, end_line) range
+function! mplus#gqformat#UngqFormat(start_line, end_line) range
     let l:start_line = a:start_line
     let l:end_line = a:end_line
 
