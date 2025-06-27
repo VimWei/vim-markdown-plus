@@ -39,6 +39,7 @@ export def IsInRange(): dict<list<list<number>>>
   # Main function start here
   # text_style comes from vim-markdown
   var text_style = synIDattr(synID(line("."), col("."), 1), "name")
+  echomsg '[IsInRange] text_style: ' .. text_style
 
   # Delimiter smart detection logic (non-recursive, move cursor to content area if found)
   if text_style =~ 'Delimiter'
@@ -85,6 +86,8 @@ export def IsInRange(): dict<list<list<number>>>
     text_style == 'markdownItalic' || text_style == 'markdownBold'
      ? StarOrUnderscore(synIDattr(synID(line("."), col("."), 1), "name"))
      : synIDattr(synID(line("."), col("."), 1), "name")
+  echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
+
   var return_val = {}
 
   if !empty(text_style_adjusted)
@@ -95,8 +98,10 @@ export def IsInRange(): dict<list<list<number>>>
     # Search start delimiter
     const open_delim =
       eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.open_delim')
-
+    echomsg '[IsInRange] open_delim: ' .. open_delim
     var open_delim_pos = searchpos($'\V{open_delim}', 'bW')
+    echomsg '[IsInRange] open_delim_pos: ' .. string(open_delim_pos)
+
     var current_style = synIDattr(synID(line("."), col("."), 1), "name")
     # We search for a markdown delimiter or an htmlTag.
     while current_style != $'{text_style}Delimiter'
@@ -118,7 +123,10 @@ export def IsInRange(): dict<list<list<number>>>
     setcursorcharpos(saved_curpos[1 : 2])
     const close_delim =
      eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.close_delim')
+    echomsg '[IsInRange] close_delim: ' .. close_delim
     var close_delim_pos = searchpos($'\V{close_delim}', 'nW')
+    echomsg '[IsInRange] close_delim_pos: ' .. string(close_delim_pos)
+
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0]
     current_style = synIDattr(synID(line("."), col("."), 1), "name")
@@ -149,9 +157,11 @@ export def IsInRange(): dict<list<list<number>>>
     else
       first_met[1] -= 1
     endif
+    echomsg '[IsInRange] first_met: ' .. string(first_met)
 
     setcursorcharpos(saved_curpos[1 : 2])
     return_val =  {[text_style_adjusted]: [open_delim_pos, first_met]}
+    echomsg '[IsInRange] return_val: ' .. string(return_val)
   endif
 
   return return_val
