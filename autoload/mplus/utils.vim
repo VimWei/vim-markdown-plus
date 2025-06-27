@@ -39,11 +39,12 @@ export def IsInRange(): dict<list<list<number>>>
   # Main function start here
   # text_style comes from vim-markdown
   var text_style = synIDattr(synID(line("."), col("."), 1), "name")
+  var text_style_origin = text_style
   echomsg '[IsInRange] text_style: ' .. text_style
 
   # Delimiter smart detection logic (non-recursive, move cursor to content area if found)
   if text_style =~ 'Delimiter'
-    echomsg '[IsInRange] On Delimiter, try left/right (non-recursive, move cursor)'
+    # echomsg '[IsInRange] On Delimiter, try left/right (non-recursive, move cursor)'
     var orig_line = line('.')
     var orig_col = col('.')
     var style_base = text_style->substitute('Delimiter$', '', '')
@@ -55,7 +56,7 @@ export def IsInRange(): dict<list<list<number>>>
       if orig_col - i < 1 | continue | endif
       call cursor(orig_line, orig_col - i)
       var left_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
-      echomsg '[IsInRange] left_style: ' .. left_style
+      # echomsg '[IsInRange] left_style: ' .. left_style
       if left_style !~ 'Delimiter' && left_style != ''
         found = 1
         break
@@ -66,7 +67,7 @@ export def IsInRange(): dict<list<list<number>>>
       for i in range(1, close_len)
         call cursor(orig_line, orig_col + i)
         var right_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
-        echomsg '[IsInRange] right_style: ' .. right_style
+        # echomsg '[IsInRange] right_style: ' .. right_style
         if right_style !~ 'Delimiter' && right_style != ''
           found = 1
           break
@@ -76,6 +77,7 @@ export def IsInRange(): dict<list<list<number>>>
     # If found, cursor is now at content area; do not restore
     if found
       text_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+      # echomsg '[IsInRange] text_style within range: ' .. text_style
     else
       # If not found, keep original position and style
       call cursor(orig_line, orig_col)
@@ -86,7 +88,9 @@ export def IsInRange(): dict<list<list<number>>>
     text_style == 'markdownItalic' || text_style == 'markdownBold'
      ? StarOrUnderscore(synIDattr(synID(line("."), col("."), 1), "name"))
      : synIDattr(synID(line("."), col("."), 1), "name")
-  echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
+  if text_style_adjusted != text_style_origin || text_style_adjusted != text_style
+    echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
+  endif
 
   var return_val = {}
 
@@ -98,9 +102,8 @@ export def IsInRange(): dict<list<list<number>>>
     # Search start delimiter
     const open_delim =
       eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.open_delim')
-    echomsg '[IsInRange] open_delim: ' .. open_delim
     var open_delim_pos = searchpos($'\V{open_delim}', 'bW')
-    echomsg '[IsInRange] open_delim_pos: ' .. string(open_delim_pos)
+    echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' ' .. string(open_delim_pos)
 
     var current_style = synIDattr(synID(line("."), col("."), 1), "name")
     # We search for a markdown delimiter or an htmlTag.
@@ -123,9 +126,8 @@ export def IsInRange(): dict<list<list<number>>>
     setcursorcharpos(saved_curpos[1 : 2])
     const close_delim =
      eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.close_delim')
-    echomsg '[IsInRange] close_delim: ' .. close_delim
     var close_delim_pos = searchpos($'\V{close_delim}', 'nW')
-    echomsg '[IsInRange] close_delim_pos: ' .. string(close_delim_pos)
+    echomsg '[IsInRange] close_delim: ' .. close_delim .. ' ' .. string(close_delim_pos)
 
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0]
@@ -157,11 +159,14 @@ export def IsInRange(): dict<list<list<number>>>
     else
       first_met[1] -= 1
     endif
-    echomsg '[IsInRange] first_met: ' .. string(first_met)
+    # echomsg '[IsInRange] first_met: ' .. string(first_met)
 
     setcursorcharpos(saved_curpos[1 : 2])
     return_val =  {[text_style_adjusted]: [open_delim_pos, first_met]}
-    echomsg '[IsInRange] return_val: ' .. string(return_val)
+    echomsg '[IsInRange] return: {"content text style": start[lnum, col], end[lnum, col]}'
+    echomsg '[IsInRange] return: ' .. string(return_val)
+  else
+    echomsg '[IsInRange] not in range.'
   endif
 
   return return_val

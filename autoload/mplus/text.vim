@@ -7,9 +7,10 @@ import autoload './links.vim' as links
 # ToggleSurround ---------------------------------------------------------{{{1
 export def ToggleSurround(style: string, type: string = '')
   echomsg '------------------------------------------------'
+  echomsg '```'
   echomsg '[ToggleSurround] start: ' .. style
   var range_info = utils.IsInRange()
-  echomsg '[ToggleSurround] range_info: ' .. string(range_info)
+  # echomsg '[ToggleSurround] range_info: ' .. string(range_info)
   if !empty(range_info) && keys(range_info)[0] == style
     echomsg '[ToggleSurround] Will call RemoveSurrounding'
     RemoveSurrounding(range_info)
@@ -17,7 +18,8 @@ export def ToggleSurround(style: string, type: string = '')
     echomsg '[ToggleSurround] Will call SurroundSmart'
     SurroundSmart(style, type)
   endif
-  # call Redir#redir('messages', 0, 0, 0)
+  echomsg '```'
+  call Redir#redir('messages', 0, 0, 0)
 enddef
 
 # Surround ---------------------------------------------------------------{{{1
