@@ -103,7 +103,7 @@ export def IsInRange(): dict<list<list<number>>>
     const open_delim =
       eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.open_delim')
     var open_delim_pos = searchpos($'\V{open_delim}', 'bW')
-    echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' ' .. string(open_delim_pos)
+    echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' start at ' .. string(open_delim_pos)
 
     var current_style = synIDattr(synID(line("."), col("."), 1), "name")
     # We search for a markdown delimiter or an htmlTag.
@@ -127,7 +127,7 @@ export def IsInRange(): dict<list<list<number>>>
     const close_delim =
      eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.close_delim')
     var close_delim_pos = searchpos($'\V{close_delim}', 'nW')
-    echomsg '[IsInRange] close_delim: ' .. close_delim .. ' ' .. string(close_delim_pos)
+    echomsg '[IsInRange] close_delim: ' .. close_delim .. ' start at ' .. string(close_delim_pos)
 
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0]
@@ -163,8 +163,7 @@ export def IsInRange(): dict<list<list<number>>>
 
     setcursorcharpos(saved_curpos[1 : 2])
     return_val =  {[text_style_adjusted]: [open_delim_pos, first_met]}
-    echomsg '[IsInRange] return: {"content text style": start[lnum, col], end[lnum, col]}'
-    echomsg '[IsInRange] return: ' .. string(return_val)
+    echomsg '[IsInRange] content style and range ' .. string(return_val)
   else
     echomsg '[IsInRange] not in range.'
   endif

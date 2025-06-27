@@ -6,11 +6,10 @@ import autoload './links.vim' as links
 
 # ToggleSurround ---------------------------------------------------------{{{1
 export def ToggleSurround(style: string, type: string = '')
-  echomsg '------------------------------------------------'
-  echomsg '```'
+  echomsg '```echomsg ------------------------------------'
   echomsg '[ToggleSurround] start: ' .. style
+  echomsg '[ToggleSurround] check cursor IsInRange ...'
   var range_info = utils.IsInRange()
-  # echomsg '[ToggleSurround] range_info: ' .. string(range_info)
   if !empty(range_info) && keys(range_info)[0] == style
     echomsg '[ToggleSurround] Will call RemoveSurrounding'
     RemoveSurrounding(range_info)
@@ -92,6 +91,7 @@ export def SurroundSmart(style: string, type: string = '')
       overwritten = overwritten
   ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
     endfor
+    echomsg '[SurroundSmart] Remove all existing text-styles between A and B'
     return overwritten
   enddef
 
@@ -113,10 +113,12 @@ export def SurroundSmart(style: string, type: string = '')
   # line and column of point A
   var lA = line("'[")
   var cA = type == 'line' ? 1 : charcol("'[")
+  echomsg '[SurroundSmart] line and column of point A: [' .. lA .. ',' .. cA .. ']'
 
   # line and column of point B
   var lB = line("']")
   var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
+  echomsg '[SurroundSmart] line and column of point B: [' .. lB .. ',' .. cB .. ']'
 
   # -------- SMART DELIMITERS BEGIN ---------------------------
   # We check conditions like the following and we adjust the style
@@ -141,6 +143,7 @@ export def SurroundSmart(style: string, type: string = '')
   # Check if A falls in an existing interval
   cursor(lA, cA)
   var old_right_delimiter = ''
+  echomsg '[SurroundSmart] check point A IsInRange ...'
   var found_interval = utils.IsInRange()
   if !empty(found_interval)
     var found_style = keys(found_interval)[0]
@@ -180,6 +183,8 @@ export def SurroundSmart(style: string, type: string = '')
   # Check if B falls in an existing interval
   cursor(lB, cB)
   var old_left_delimiter = ''
+
+  echomsg '[SurroundSmart] check point B IsInRange ...'
   found_interval = utils.IsInRange()
   if !empty(found_interval)
     var found_style = keys(found_interval)[0]
@@ -196,7 +201,7 @@ export def SurroundSmart(style: string, type: string = '')
   else
     fromB = close_delim .. strcharpart(getline(lB), cB)
   endif
-
+  echomsg '[SurroundSmart] SMART DELIMITERS processed.'
   # ------- SMART DELIMITERS PART END -----------
   # We have compute the partial strings until A and the partial string that
   # leaves B. Existing delimiters are set.
@@ -261,16 +266,16 @@ enddef
 # RemoveSurrounding ------------------------------------------------------{{{2
 export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
     const style_interval = empty(range_info) ? utils.IsInRange() : range_info
-    echomsg '[RemoveSurrounding] style_interval: ' .. string(style_interval)
+    # echomsg '[RemoveSurrounding] style_interval: ' .. string(style_interval)
     if !empty(style_interval)
       const style = keys(style_interval)[0]
       const interval = values(style_interval)[0]
-      echomsg '[RemoveSurrounding] style: ' .. style
+      # echomsg '[RemoveSurrounding] style: ' .. style
 
       # Remove left delimiter
       const lA = interval[0][0]
       const cA = interval[0][1]
-      echomsg '[RemoveSurrounding] lA: ' .. lA .. ', cA: ' .. cA
+      echomsg '[RemoveSurrounding] Range starts at: [' .. lA .. ',' .. cA .. ']'
 
       const lineA = getline(lA)
       echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
@@ -284,7 +289,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       # Remove right delimiter
       const lB = interval[1][0]
       var cB = interval[1][1]
-      echomsg '[RemoveSurrounding] lB: ' .. lB .. ', cB: ' .. cB
+      echomsg '[RemoveSurrounding] Range ends at: [' .. lB .. ',' .. cB .. ']'
 
       # Update cB.
       # If lA == lB, then The value of cB may no longer be valid since
