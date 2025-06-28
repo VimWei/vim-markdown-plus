@@ -15,9 +15,10 @@ CONTENTS                                     *markdown-plus-contents*
    3.1 Text Formatting................|markdown-plus-text-formatting|
    3.2 Code Blocks....................|markdown-plus-code-blocks|
    3.3 Todo Status....................|markdown-plus-todo-status|
-   3.4 Link Management..............|..markdown-plus-link-management|
-   3.5 List Formatting..............|..markdown-plus-list-formatting|
+   3.4 Link Management................|markdown-plus-link-management|
 4. Commands...........................|markdown-plus-commands|
+   4.1 Todo Management................|markdown-plus-todo-commands|
+   4.2 List Formatting................|markdown-plus-list-formatting|
 5. Options............................|markdown-plus-options|
 6. Markdown Link Conceal Enhancement..|markdown-plus-link-conceal|
 
@@ -56,26 +57,36 @@ rule that is defined in the original syntax file.
 ======================================================================
 3. MAPPINGS                                    *markdown-plus-mappings*
 
-All default mappings are prefixed with `<leader>m`.
-
 ----------------------------------------------------------------------
 3.1 Text Formatting                    *markdown-plus-text-formatting*
 
 The following mappings are designed to be "smart toggles." They work in
-Normal, Visual, and Operator-pending modes. When used, they will either
-add the specified formatting or remove it if it's already present.
+Visual and Operator-pending modes. When used, they will either add the 
+specified formatting or remove it if it's already present.
 
-Normal and Visual mappings for the current word or selection:
-- `<leader>mb`: Toggle bold
-- `<leader>mi`: Toggle italic
-- `<leader>ms`: Toggle strikethrough
-- `<leader>mc`: Toggle inline code
+Visual mappings for the selection:
+- `<localleader>b`: Toggle bold
+- `<localleader>i`: Toggle italic
+- `<localleader>s`: Toggle strikethrough
+- `<localleader>c`: Toggle inline code
 
 Operator-pending mappings for any text object or motion:
-- `<leader>ob` + {motion}: Toggle bold
-- `<leader>oi` + {motion}: Toggle italic
-- `<leader>os` + {motion}: Toggle strikethrough
-- `<leader>oc` + {motion}: Toggle inline code
+- `<localleader>b` + {motion}: Toggle bold
+- `<localleader>i` + {motion}: Toggle italic
+- `<localleader>s` + {motion}: Toggle strikethrough
+- `<localleader>c` + {motion}: Toggle inline code
+
+Plug mappings (for custom key bindings):
+- `<Plug>MarkdownBold`: Toggle bold formatting
+- `<Plug>MarkdownItalic`: Toggle italic formatting
+- `<Plug>MarkdownStrike`: Toggle strikethrough formatting
+- `<Plug>MarkdownCode`: Toggle inline code formatting
+
+These Plug mappings can be remapped to different keys if needed. For example:
+>
+    nmap <leader>b <Plug>MarkdownBold
+    xmap <leader>b <Plug>MarkdownBold
+<
 
 ----------------------------------------------------------------------
 3.2 Code Blocks                            *markdown-plus-code-blocks*
@@ -83,32 +94,38 @@ Operator-pending mappings for any text object or motion:
 `<leader>cb`
     In Normal mode: wraps the current line in a fenced code block.
     In Visual mode: wraps the selected lines in a fenced code block.
-    (No language prompt unless implemented in the function.)
 
-:WrapInCodeBlock [range]
-    Command to wrap the given line range in a fenced code block.
+:ToggleCodeBlock [range]
+    Command to toggle code block formatting for the given line range.
+    If lines are not in a code block, wraps them in one.
+    If lines are already in a code block, removes the block formatting.
 
 ----------------------------------------------------------------------
 3.3 Todo Status                            *markdown-plus-todo-status*
 
 These mappings provide an efficient way to manage todo lists.
 
-`<leader>tdc`, `TodoCheckboxToggle`
-    Adds or removes a todo checkbox `[ ]`.
+Mappings:
+- `<leader>tdc`: Toggle checkbox (add/remove `[ ]`)
+- `<leader>tdd`: Toggle between pending `[ ]` and done `[x]`
+- `<leader>tds`: Toggle between pending `[ ]` and suspended `[-]`
+- `<leader>tdn`: Change to next maturity level
+- `<leader>tdp`: Change to previous maturity level
 
-`<leader>tdd`, `TodoDoneToggle`
-    Toggles the todo status between pending `[ ]` and done `[x]`.
+Plug mappings (for custom key bindings):
+- `<Plug>MarkdownTodoCheckbox`: Toggle checkbox formatting
+- `<Plug>MarkdownTodoDone`: Toggle done status
+- `<Plug>MarkdownTodoSuspend`: Toggle suspend status
+- `<Plug>MarkdownTodoNext`: Change to next maturity level
+- `<Plug>MarkdownTodoPrevious`: Change to previous maturity level
 
-`<leader>tds`, `TodoSuspendToggle`
-    Toggles the checkbox between pending `[ ]` and suspended `[-]`.
+These Plug mappings can be remapped to different keys if needed. For example:
+>
+    nmap <leader>c <Plug>MarkdownTodoCheckbox
+    xmap <leader>c <Plug>MarkdownTodoCheckbox
+<
 
-`<leader>tdn`, `TodoMaturityNext`
-    Change to next maturity level
-    The cycle is: `[ ]` > `[.]` > `[o]` > `[O]` > `[x]`.
-
-`<leader>tdp`, `TodoMaturityPrevious`
-    Change to previous maturity level
-    The cycle is: `[x]` > `[O]` > `[o]` > `[.]` > `[ ]`.
+Maturity levels cycle through: `[ ]` > `[.]` > `[o]` > `[O]` > `[x]`
 
 ----------------------------------------------------------------------
 3.4 Link Management                      *markdown-plus-link-management*
@@ -131,8 +148,33 @@ Link and image operations are now fully context-aware and streamlined.
     Unwraps a Markdown link, leaving only the URL as plain text.
     Example: `[text](url)` → `url`
 
+======================================================================
+4. COMMANDS                                    *markdown-plus-commands*
+
 ----------------------------------------------------------------------
-3.5 List Formatting                            *markdown-plus-list-formatting*
+4.1 Todo Management                       *markdown-plus-todo-commands*
+
+These commands provide range-based todo list management:
+
+:TodoCheckboxToggle [range]
+    Add or remove a todo checkbox `[ ]` for the specified line range.
+
+:TodoDoneToggle [range]
+    Toggle the todo status between pending `[ ]` and done `[x]` for the specified line range.
+
+:TodoSuspendToggle [range]
+    Toggle the checkbox between pending `[ ]` and suspended `[-]` for the specified line range.
+
+:TodoMaturityNext [range]
+    Change to next maturity level for the specified line range.
+    The cycle is: `[ ]` > `[.]` > `[o]` > `[O]` > `[x]`.
+
+:TodoMaturityPrevious [range]
+    Change to previous maturity level for the specified line range.
+    The cycle is: `[x]` > `[O]` > `[o]` > `[.]` > `[ ]`.
+
+----------------------------------------------------------------------
+4.2 List Formatting                     *markdown-plus-list-formatting*
 
 Vim's built-in `gq` command can be used to format lists and paragraphs in
 markdown files. This works instantly in new empty buffers because their
@@ -144,12 +186,10 @@ filetype is set to markdown automatically by the plugin.
     Restore the original formatting of lines that were previously formatted with `gq`.
 
 ======================================================================
-4. COMMANDS                                    *markdown-plus-commands*
+5. OPTIONS                                      *markdown-plus-options*
 
-(No commands yet.)
-
-======================================================================
-4. OPTIONS                                      *markdown-plus-options*
+* Set local leader key
+    let g:maplocalleader = "\<space>m"
 
 * Customize checkbox symbols, default: [ ] [.] [o] [O] [x] [X] [-]
     let g:markdown_checkbox_symbols = ' .oOxX-'

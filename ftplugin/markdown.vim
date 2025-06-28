@@ -14,27 +14,43 @@ nnoremap <leader>cb :ToggleCodeBlock<CR>
 
 # Todo -------------------------------------------------------------------{{{1
 
-var todo_cmds = [
-  {name: 'TodoCheckboxToggle', func: 'CheckboxToggle', key: 'tdc'},
-  {name: 'TodoDoneToggle', func: 'DoneToggle', key: 'tdd'},
-  {name: 'TodoSuspendToggle', func: 'SuspendToggle', key: 'tds'},
-  {name: 'TodoMaturityNext', func: 'MaturityNext', key: 'tdn'},
-  {name: 'TodoMaturityPrevious', func: 'MaturityPrevious', key: 'tdp'},
+# Todo 状态管理，行级别操作
+var todo_items = [
+  {plug: '<Plug>MarkdownTodoCheckbox',    key: 'tdc', func: 'CheckboxToggle'},
+  {plug: '<Plug>MarkdownTodoDone',        key: 'tdd', func: 'DoneToggle'},
+  {plug: '<Plug>MarkdownTodoSuspend',     key: 'tds', func: 'SuspendToggle'},
+  {plug: '<Plug>MarkdownTodoNext',        key: 'tdn', func: 'MaturityNext'},
+  {plug: '<Plug>MarkdownTodoPrevious',    key: 'tdp', func: 'MaturityPrevious'},
 ]
 
-for item in todo_cmds
-  execute $'command! -range {item.name} call todo.{item.func}(<line1>, <line2>)'
-  execute $'vnoremap <leader>{item.key} :{item.name}<CR>'
-  execute $'nnoremap <leader>{item.key} :{item.name}<CR>'
+for item in todo_items
+  # 映射到 <Plug>
+  if !hasmapto(item.plug)
+    if empty(mapcheck($'<leader>{item.key}', 'n', 1))
+      execute $'nnoremap <buffer> <leader>{item.key} {item.plug}'
+    endif
+    if empty(mapcheck($'<leader>{item.key}', 'x', 1))
+      execute $'xnoremap <buffer> <leader>{item.key} {item.plug}'
+    endif
+  endif
+
+  # <Plug> 实现 - 行级别操作
+  if empty(maparg(item.plug))
+    execute $'nnoremap <script> <buffer> {item.plug} :call todo.{item.func}(line("."), line("."))<CR>'
+    execute $'xnoremap <script> <buffer> {item.plug} :<C-u>call todo.{item.func}(line("."), line("."))<CR>'
+  endif
 endfor
+
+# 命令接口 - 兼容 vim-quickui 和 vim-navigator 等第三方插件
+command! -range TodoCheckboxToggle call todo.CheckboxToggle(<line1>, <line2>)
+command! -range TodoDoneToggle call todo.DoneToggle(<line1>, <line2>)
+command! -range TodoSuspendToggle call todo.SuspendToggle(<line1>, <line2>)
+command! -range TodoMaturityNext call todo.MaturityNext(<line1>, <line2>)
+command! -range TodoMaturityPrevious call todo.MaturityPrevious(<line1>, <line2>)
 
 # Text Formatting --------------------------------------------------------{{{1
 
 # 智能加粗/斜体/删除线/行内代码，支持 text-object 操作
-def SetSurroundOpFunc(style: string)
-  &l:opfunc = function(text.ToggleSurround, [style])
-enddef
-
 var styles = [
   {plug: '<Plug>MarkdownBold',    key: 'b', style: 'markdownBold'},
   {plug: '<Plug>MarkdownItalic',  key: 'i', style: 'markdownItalic'},
@@ -55,7 +71,8 @@ for item in styles
 
   # <Plug> 实现
   if empty(maparg(item.plug))
-    execute $'noremap <script> <buffer> {item.plug} <ScriptCmd>SetSurroundOpFunc("{item.style}")<cr>g@'
+    execute $'noremap <script> <buffer> {item.plug} '
+      .. '<ScriptCmd>&l:opfunc = function(text.ToggleSurround, ["{item.style}"])<cr>g@'
   endif
 endfor
 
