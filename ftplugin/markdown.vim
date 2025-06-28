@@ -71,8 +71,7 @@ for item in styles
 
   # <Plug> 实现
   if empty(maparg(item.plug))
-    execute $'noremap <script> <buffer> {item.plug} '
-      .. '<ScriptCmd>&l:opfunc = function(text.ToggleSurround, ["{item.style}"])<cr>g@'
+    execute $'noremap <script> <buffer> {item.plug} <ScriptCmd>&l:opfunc = function(text.ToggleSurround, ["{item.style}"])<cr>g@'
   endif
 endfor
 
