@@ -5,6 +5,11 @@ import autoload './constants.vim' as constants
 # Syntax and Positional Analysis -----------------------------------------{{{1
 
 # IsInRange --------------------------------------------------------------{{{2
+# Multibyte support: All column positions are character-based (1-based)
+# Input: Current cursor position (character-based)
+# Output: Dict with style as key, value is [start_pos, end_pos] where:
+#         - start_pos: [line, char_col] (1-based line, 1-based char column)
+#         - end_pos: [line, char_col] (1-based line, 1-based char column)
 export def IsInRange(): dict<list<list<number>>>
   # Return a dict like {'markdownCode': [[21, 19], [22, 21]]}.
   # The returned intervals are open.
@@ -38,7 +43,7 @@ export def IsInRange(): dict<list<list<number>>>
 
   # Main function start here
   # text_style comes from vim-markdown
-  var text_style = synIDattr(synID(line("."), col("."), 1), "name")
+  var text_style = synIDattr(synID(line("."), charcol("."), 1), "name")
   var text_style_origin = text_style
   echomsg '[IsInRange] text_style: ' .. text_style
 
@@ -46,7 +51,7 @@ export def IsInRange(): dict<list<list<number>>>
   if text_style =~ 'Delimiter'
     # echomsg '[IsInRange] On Delimiter, try left/right (non-recursive, move cursor)'
     var orig_line = line('.')
-    var orig_col = col('.')
+    var orig_col = charcol('.')
     var style_base = text_style->substitute('Delimiter$', '', '')
     var open_len = has_key(constants.TEXT_STYLES_DICT, style_base) ? strchars(constants.TEXT_STYLES_DICT[style_base].open_delim) : 2
     var close_len = has_key(constants.TEXT_STYLES_DICT, style_base) ? strchars(constants.TEXT_STYLES_DICT[style_base].close_delim) : 2
@@ -55,7 +60,7 @@ export def IsInRange(): dict<list<list<number>>>
     for i in range(1, open_len)
       if orig_col - i < 1 | continue | endif
       call cursor(orig_line, orig_col - i)
-      var left_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+      var left_style = synIDattr(synID(line('.'), charcol('.'), 1), 'name')
       # echomsg '[IsInRange] left_style: ' .. left_style
       if left_style !~ 'Delimiter' && left_style != ''
         found = 1
@@ -66,7 +71,7 @@ export def IsInRange(): dict<list<list<number>>>
     if !found
       for i in range(1, close_len)
         call cursor(orig_line, orig_col + i)
-        var right_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+        var right_style = synIDattr(synID(line('.'), charcol('.'), 1), 'name')
         # echomsg '[IsInRange] right_style: ' .. right_style
         if right_style !~ 'Delimiter' && right_style != ''
           found = 1
@@ -76,7 +81,7 @@ export def IsInRange(): dict<list<list<number>>>
     endif
     # If found, cursor is now at content area; do not restore
     if found
-      text_style = synIDattr(synID(line('.'), col('.'), 1), 'name')
+      text_style = synIDattr(synID(line('.'), charcol('.'), 1), 'name')
       # echomsg '[IsInRange] text_style within range: ' .. text_style
     else
       # If not found, keep original position and style
@@ -86,8 +91,8 @@ export def IsInRange(): dict<list<list<number>>>
 
   const text_style_adjusted =
     text_style == 'markdownItalic' || text_style == 'markdownBold'
-     ? StarOrUnderscore(synIDattr(synID(line("."), col("."), 1), "name"))
-     : synIDattr(synID(line("."), col("."), 1), "name")
+     ? StarOrUnderscore(synIDattr(synID(line("."), charcol("."), 1), "name"))
+     : synIDattr(synID(line("."), charcol("."), 1), "name")
   if text_style_adjusted != text_style_origin || text_style_adjusted != text_style
     echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
   endif
@@ -105,20 +110,22 @@ export def IsInRange(): dict<list<list<number>>>
     var open_delim_pos = searchpos($'\V{open_delim}', 'bW')
     echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' start at ' .. string(open_delim_pos)
 
-    var current_style = synIDattr(synID(line("."), col("."), 1), "name")
+    var current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
     # We search for a markdown delimiter or an htmlTag.
     while current_style != $'{text_style}Delimiter'
         && current_style != 'htmlTag'
       && open_delim_pos != [0, 0]
       open_delim_pos = searchpos($'\V{open_delim}', 'bW')
-      current_style = synIDattr(synID(line("."), col("."), 1), "name")
+      current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
     endwhile
 
     # To avoid infinite loops if some weird delimited text is highlighted
     if open_delim_pos == [0, 0]
       return {}
     endif
-    open_delim_pos[1] += len(open_delim)
+    # Convert byte column to character column for open_delim_pos
+    var open_delim_char_col = charidx(getline(open_delim_pos[0]), open_delim_pos[1] - 1) + 1
+    open_delim_pos[1] = open_delim_char_col + strchars(open_delim)
 
     # Search end delimiter.
     # The end delimiter may be a blank line, hence
@@ -131,7 +138,7 @@ export def IsInRange(): dict<list<list<number>>>
 
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0]
-    current_style = synIDattr(synID(line("."), col("."), 1), "name")
+    current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
 
     while current_style != $'{text_style}Delimiter'
         && current_style != 'htmlEndTag'
@@ -148,16 +155,18 @@ export def IsInRange(): dict<list<list<number>>>
         : blank_line_pos
       endif
       setcursorcharpos(first_met)
-      current_style = synIDattr(synID(line("."), col("."), 1), "name")
+      current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
     endwhile
 
     # If we hit a blank line, then we take the previous line and last column,
     # to keep consistency in returning open-intervals
     if getline(line('.')) =~ '^$'
       first_met[0] = first_met[0] - 1
-      first_met[1] = len(getline(first_met[0]))
+      first_met[1] = strchars(getline(first_met[0]))
     else
-      first_met[1] -= 1
+      # Convert byte column to character column for first_met
+      var first_met_char_col = charidx(getline(first_met[0]), first_met[1] - 1) + 1
+      first_met[1] = first_met_char_col - 1
     endif
     # echomsg '[IsInRange] first_met: ' .. string(first_met)
 
@@ -312,10 +321,11 @@ export def KeysFromValue(dict: dict<string>, target_value: string): list<string>
 enddef
 
 # IsOnProp ---------------------------------------------------------------{{{2
+# Multibyte support: Uses charcol() for character-based column positions
 export def IsOnProp(): dict<any>
-  var prop = prop_find({type: prop_name, 'col': col('.')}, 'b')
+  var prop = prop_find({type: prop_name, 'col': charcol('.')}, 'b')
   if has_key(prop, 'id')
-    if line('.') != prop.lnum || col('.') > prop.col + prop.length
+    if line('.') != prop.lnum || charcol('.') > prop.col + prop.length
       prop = {}
     endif
   endif
