@@ -23,6 +23,9 @@ enddef
 
 # Surround ---------------------------------------------------------------{{{1
 # SurroundSimple ---------------------------------------------------------{{{2
+# Multibyte support: All line/column positions are 1-based character indices
+# Input: lA, cA, lB, cB (1-based, character)
+# Output: setline 操作均基于字符索引
 export def SurroundSimple(style: string, type: string = '')
 
   if getcharpos("'[") == getcharpos("']")
@@ -63,6 +66,9 @@ export def SurroundSimple(style: string, type: string = '')
 enddef
 
 # SurroundSmart ----------------------------------------------------------{{{2
+# Multibyte support: All line/column positions are 1-based character indices
+# Input: lA, cA, lB, cB (1-based, character)
+# Output: setline 操作均基于字符索引
 export def SurroundSmart(style: string, type: string = '')
   # It tries to preserve the style.
   # In general, you may want to pass constant.TEXT_STYLES_DICT as a parameter.
@@ -264,6 +270,9 @@ enddef
 
 # Remove -----------------------------------------------------------------{{{1
 # RemoveSurrounding ------------------------------------------------------{{{2
+# Multibyte support: All line/column positions are 1-based character indices
+# Input: interval: [[lA, cA], [lB, cB]] (1-based, character)
+# Output: setline 操作均基于字符索引
 export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
     const style_interval = empty(range_info) ? utils.IsInRange() : range_info
     # echomsg '[RemoveSurrounding] style_interval: ' .. string(style_interval)
@@ -281,7 +290,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
 
       var newline = strcharpart(lineA, 0,
-              \ cA - 1 - len(constants.TEXT_STYLES_DICT[style].open_delim))
+              \ cA - 1 - strchars(constants.TEXT_STYLES_DICT[style].open_delim))
               \ .. strcharpart(lineA, cA - 1)
       setline(lA, newline)
       echomsg '[RemoveSurrounding] lineA(after): ' .. getline(lA)
@@ -295,7 +304,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       # If lA == lB, then The value of cB may no longer be valid since
       # we shortened the line
       if lA == lB
-        cB = cB - len(constants.TEXT_STYLES_DICT[style].open_delim)
+        cB = cB - strchars(constants.TEXT_STYLES_DICT[style].open_delim)
       endif
 
       # Check if you hit a delimiter or a blank line OR if you hit a delimiter
@@ -306,11 +315,11 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       const lineB = getline(lB)
       echomsg '[RemoveSurrounding] lineB(before): ' .. lineB
 
-      if  cB < len(lineB)
+      if  cB < strchars(lineB)
         # You have delimters
         newline = strcharpart(lineB, 0, cB)
               \ .. strcharpart(lineB,
-                \ cB + len(constants.TEXT_STYLES_DICT[style].close_delim))
+                \ cB + strchars(constants.TEXT_STYLES_DICT[style].close_delim))
       else
         # You hit the end of paragraph
         newline = lineB
