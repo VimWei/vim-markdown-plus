@@ -18,7 +18,7 @@ export def ToggleSurround(style: string, type: string = '')
     SurroundSmart(style, type)
   endif
   # echomsg '```'
-  call Redir#redir('messages', 0, 0, 0)
+  # call Redir#redir('messages', 0, 0, 0)
 enddef
 
 # Surround ---------------------------------------------------------------{{{1
@@ -28,9 +28,9 @@ enddef
 # Output: setline 操作均基于字符索引
 export def SurroundSimple(style: string, type: string = '')
 
-  if getcharpos("'[") == getcharpos("']")
-    return
-  endif
+  # if getcharpos("'[") == getcharpos("']")
+  #   return
+  # endif
 
   var open_delim = constants.TEXT_STYLES_DICT[style].open_delim
   var close_delim = constants.TEXT_STYLES_DICT[style].close_delim
@@ -101,9 +101,9 @@ export def SurroundSmart(style: string, type: string = '')
     return overwritten
   enddef
 
-  if getcharpos("'[") == getcharpos("']")
-    return
-  endif
+  # if getcharpos("'[") == getcharpos("']")
+  #   return
+  # endif
 
   if index(keys(constants.TEXT_STYLES_DICT), style) == -1
     utils.Echoerr($'Style "{style}" not found in dict')
