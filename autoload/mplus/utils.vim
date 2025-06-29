@@ -137,41 +137,55 @@ export def IsInRange(): dict<list<list<number>>>
     echomsg '[IsInRange] close_delim: ' .. close_delim .. ' start at ' .. string(close_delim_pos)
 
     var blank_line_pos = searchpos($'^$', 'nW')
-    var first_met = [0, 0]
+    var first_met = [0, 0] # This variable will no longer be used for cursor positioning directly
+    var first_met_char_pos = [0, 0] # Character-based position for cursor and return
+
     current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
 
     while current_style != $'{text_style}Delimiter'
         && current_style != 'htmlEndTag'
         && getline(line('.')) !~ '^$'
-      close_delim_pos = searchpos($'\V{close_delim}', 'nW')
-      blank_line_pos = searchpos($'^$', 'nW')
-      if close_delim_pos == [0, 0]
-        first_met = blank_line_pos
-      elseif blank_line_pos == [0, 0]
-        first_met = close_delim_pos
+      var close_delim_byte_pos = searchpos($'\V{close_delim}', 'nW')
+      var blank_line_byte_pos = searchpos($'^$', 'nW')
+
+      var temp_first_met_byte_pos = [0, 0]
+      if close_delim_byte_pos == [0, 0]
+        temp_first_met_byte_pos = blank_line_byte_pos
+      elseif blank_line_byte_pos == [0, 0]
+        temp_first_met_byte_pos = close_delim_byte_pos
       else
-        first_met = IsLess(close_delim_pos, blank_line_pos)
-        ? close_delim_pos
-        : blank_line_pos
+        temp_first_met_byte_pos = IsLess(close_delim_byte_pos, blank_line_byte_pos)
+        ? close_delim_byte_pos
+        : blank_line_byte_pos
       endif
-      setcursorcharpos(first_met)
+
+      # Convert temp_first_met_byte_pos to character column before setting cursor
+      if temp_first_met_byte_pos != [0, 0]
+        var temp_first_met_char_col = charidx(getline(temp_first_met_byte_pos[0]), temp_first_met_byte_pos[1] - 1) + 1
+        first_met_char_pos = [temp_first_met_byte_pos[0], temp_first_met_char_col]
+      else
+        first_met_char_pos = [0, 0] # Should not happen if one of them is found
+      endif
+
+      setcursorcharpos(first_met_char_pos)
+      echomsg '[DEBUG] Cursor moved to: ' .. string(getcursorcharpos())
       current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
+      echomsg '[DEBUG] Current style after move: ' .. current_style
     endwhile
+    echomsg '[IsInRange] first_met_char_pos: ' .. string(first_met_char_pos)
 
     # If we hit a blank line, then we take the previous line and last column,
     # to keep consistency in returning open-intervals
     if getline(line('.')) =~ '^$'
-      first_met[0] = first_met[0] - 1
-      first_met[1] = strchars(getline(first_met[0]))
+      first_met_char_pos[0] = first_met_char_pos[0] - 1
+      first_met_char_pos[1] = strchars(getline(first_met_char_pos[0]))
     else
-      # Convert byte column to character column for first_met
-      var first_met_char_col = charidx(getline(first_met[0]), first_met[1] - 1) + 1
-      first_met[1] = first_met_char_col - 1
+      first_met_char_pos[1] = first_met_char_pos[1] - 1
     endif
     # echomsg '[IsInRange] first_met: ' .. string(first_met)
 
     setcursorcharpos(saved_curpos[1 : 2])
-    return_val =  {[text_style_adjusted]: [open_delim_pos, first_met]}
+    return_val =  {[text_style_adjusted]: [open_delim_pos, first_met_char_pos]}
     echomsg '[IsInRange] content style and range ' .. string(return_val)
   else
     echomsg '[IsInRange] not in range.'
