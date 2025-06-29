@@ -43,7 +43,7 @@ export def IsInRange(): dict<list<list<number>>>
 
   # Main function start here
   # text_style comes from vim-markdown
-  var text_style = synIDattr(synID(line("."), charcol("."), 1), "name")
+  var text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
   var text_style_origin = text_style
   echomsg '[IsInRange] text_style: ' .. text_style
 
@@ -91,8 +91,8 @@ export def IsInRange(): dict<list<list<number>>>
 
   const text_style_adjusted =
     text_style == 'markdownItalic' || text_style == 'markdownBold'
-     ? StarOrUnderscore(synIDattr(synID(line("."), charcol("."), 1), "name"))
-     : synIDattr(synID(line("."), charcol("."), 1), "name")
+     ? StarOrUnderscore(synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name"))
+     : synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
   if text_style_adjusted != text_style_origin || text_style_adjusted != text_style
     echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
   endif
@@ -110,13 +110,13 @@ export def IsInRange(): dict<list<list<number>>>
     var open_delim_pos = searchpos($'\V{open_delim}', 'bW')
     echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' start at ' .. string(open_delim_pos)
 
-    var current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
+    var current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     # We search for a markdown delimiter or an htmlTag.
     while current_style != $'{text_style}Delimiter'
         && current_style != 'htmlTag'
       && open_delim_pos != [0, 0]
       open_delim_pos = searchpos($'\V{open_delim}', 'bW')
-      current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
+      current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     endwhile
 
     # To avoid infinite loops if some weird delimited text is highlighted
@@ -138,7 +138,7 @@ export def IsInRange(): dict<list<list<number>>>
 
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0]
-    current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
+    current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
 
     while current_style != $'{text_style}Delimiter'
         && current_style != 'htmlEndTag'
@@ -155,7 +155,7 @@ export def IsInRange(): dict<list<list<number>>>
         : blank_line_pos
       endif
       setcursorcharpos(first_met)
-      current_style = synIDattr(synID(line("."), charcol("."), 1), "name")
+      current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     endwhile
 
     # If we hit a blank line, then we take the previous line and last column,
