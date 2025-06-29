@@ -45,7 +45,7 @@ export def IsInRange(): dict<list<list<number>>>
   # text_style comes from vim-markdown
   var text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
   var text_style_origin = text_style
-  echomsg '[IsInRange] text_style: ' .. text_style
+  # echomsg '[IsInRange] text_style: ' .. text_style
 
   # Delimiter smart detection logic (non-recursive, move cursor to content area if found)
   if text_style =~ 'Delimiter'
@@ -94,7 +94,7 @@ export def IsInRange(): dict<list<list<number>>>
      ? StarOrUnderscore(synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name"))
      : synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
   if text_style_adjusted != text_style_origin || text_style_adjusted != text_style
-    echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
+    # echomsg '[IsInRange] text_style_adjusted: ' .. text_style_adjusted
   endif
 
   var return_val = {}
@@ -108,7 +108,7 @@ export def IsInRange(): dict<list<list<number>>>
     const open_delim =
       eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.open_delim')
     var open_delim_pos = searchpos($'\V{open_delim}', 'bW')
-    echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' start at ' .. string(open_delim_pos)
+    # echomsg '[IsInRange] open_delim: ' ..  open_delim  .. ' start at ' .. string(open_delim_pos)
 
     var current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     # We search for a markdown delimiter or an htmlTag.
@@ -134,7 +134,7 @@ export def IsInRange(): dict<list<list<number>>>
     const close_delim =
      eval($'constants.TEXT_STYLES_DICT.{text_style_adjusted}.close_delim')
     var close_delim_pos = searchpos($'\V{close_delim}', 'nW')
-    echomsg '[IsInRange] close_delim: ' .. close_delim .. ' start at ' .. string(close_delim_pos)
+    # echomsg '[IsInRange] close_delim: ' .. close_delim .. ' start at ' .. string(close_delim_pos)
 
     var blank_line_pos = searchpos($'^$', 'nW')
     var first_met = [0, 0] # This variable will no longer be used for cursor positioning directly
@@ -168,11 +168,11 @@ export def IsInRange(): dict<list<list<number>>>
       endif
 
       setcursorcharpos(first_met_char_pos)
-      echomsg '[DEBUG] Cursor moved to: ' .. string(getcursorcharpos())
+      # echomsg '[DEBUG] Cursor moved to: ' .. string(getcursorcharpos())
       current_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
-      echomsg '[DEBUG] Current style after move: ' .. current_style
+      # echomsg '[DEBUG] Current style after move: ' .. current_style
     endwhile
-    echomsg '[IsInRange] first_met_char_pos: ' .. string(first_met_char_pos)
+    # echomsg '[IsInRange] first_met_char_pos: ' .. string(first_met_char_pos)
 
     # If we hit a blank line, then we take the previous line and last column,
     # to keep consistency in returning open-intervals
@@ -186,9 +186,9 @@ export def IsInRange(): dict<list<list<number>>>
 
     setcursorcharpos(saved_curpos[1 : 2])
     return_val =  {[text_style_adjusted]: [open_delim_pos, first_met_char_pos]}
-    echomsg '[IsInRange] content style and range ' .. string(return_val)
+    # echomsg '[IsInRange] content style and range ' .. string(return_val)
   else
-    echomsg '[IsInRange] not in range.'
+    # echomsg '[IsInRange] not in range.'
   endif
 
   return return_val

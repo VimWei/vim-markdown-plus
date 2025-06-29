@@ -6,18 +6,18 @@ import autoload './links.vim' as links
 
 # ToggleSurround ---------------------------------------------------------{{{1
 export def ToggleSurround(style: string, type: string = '')
-  echomsg '```echomsg ------------------------------------'
-  echomsg '[ToggleSurround] start: ' .. style
-  echomsg '[ToggleSurround] check cursor IsInRange ...'
+  # echomsg '```echomsg ------------------------------------'
+  # echomsg '[ToggleSurround] start: ' .. style
+  # echomsg '[ToggleSurround] check cursor IsInRange ...'
   var range_info = utils.IsInRange()
   if !empty(range_info) && keys(range_info)[0] == style
-    echomsg '[ToggleSurround] Will call RemoveSurrounding'
+    # echomsg '[ToggleSurround] Will call RemoveSurrounding'
     RemoveSurrounding(range_info)
   else
-    echomsg '[ToggleSurround] Will call SurroundSmart'
+    # echomsg '[ToggleSurround] Will call SurroundSmart'
     SurroundSmart(style, type)
   endif
-  echomsg '```'
+  # echomsg '```'
   call Redir#redir('messages', 0, 0, 0)
 enddef
 
@@ -97,7 +97,7 @@ export def SurroundSmart(style: string, type: string = '')
       overwritten = overwritten
   ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
     endfor
-    echomsg '[SurroundSmart] Remove all existing text-styles between A and B'
+    # echomsg '[SurroundSmart] Remove all existing text-styles between A and B'
     return overwritten
   enddef
 
@@ -119,12 +119,12 @@ export def SurroundSmart(style: string, type: string = '')
   # line and column of point A
   var lA = line("'[")
   var cA = type == 'line' ? 1 : charcol("'[")
-  echomsg '[SurroundSmart] line and column of point A: [' .. lA .. ',' .. cA .. ']'
+  # echomsg '[SurroundSmart] line and column of point A: [' .. lA .. ',' .. cA .. ']'
 
   # line and column of point B
   var lB = line("']")
   var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
-  echomsg '[SurroundSmart] line and column of point B: [' .. lB .. ',' .. cB .. ']'
+  # echomsg '[SurroundSmart] line and column of point B: [' .. lB .. ',' .. cB .. ']'
 
   # -------- SMART DELIMITERS BEGIN ---------------------------
   # We check conditions like the following and we adjust the style
@@ -149,7 +149,7 @@ export def SurroundSmart(style: string, type: string = '')
   # Check if A falls in an existing interval
   cursor(lA, cA)
   var old_right_delimiter = ''
-  echomsg '[SurroundSmart] check point A IsInRange ...'
+  # echomsg '[SurroundSmart] check point A IsInRange ...'
   var found_interval = utils.IsInRange()
   if !empty(found_interval)
     var found_style = keys(found_interval)[0]
@@ -190,7 +190,7 @@ export def SurroundSmart(style: string, type: string = '')
   cursor(lB, cB)
   var old_left_delimiter = ''
 
-  echomsg '[SurroundSmart] check point B IsInRange ...'
+  # echomsg '[SurroundSmart] check point B IsInRange ...'
   found_interval = utils.IsInRange()
   if !empty(found_interval)
     var found_style = keys(found_interval)[0]
@@ -207,7 +207,7 @@ export def SurroundSmart(style: string, type: string = '')
   else
     fromB = close_delim .. strcharpart(getline(lB), cB)
   endif
-  echomsg '[SurroundSmart] SMART DELIMITERS processed.'
+  # echomsg '[SurroundSmart] SMART DELIMITERS processed.'
   # ------- SMART DELIMITERS PART END -----------
   # We have compute the partial strings until A and the partial string that
   # leaves B. Existing delimiters are set.
@@ -284,21 +284,21 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       # Remove left delimiter
       const lA = interval[0][0]
       const cA = interval[0][1]
-      echomsg '[RemoveSurrounding] Range starts at: [' .. lA .. ',' .. cA .. ']'
+      # echomsg '[RemoveSurrounding] Range starts at: [' .. lA .. ',' .. cA .. ']'
 
       const lineA = getline(lA)
-      echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
+      # echomsg '[RemoveSurrounding] lineA(before): ' .. lineA
 
       var newline = strcharpart(lineA, 0,
               \ cA - 1 - strchars(constants.TEXT_STYLES_DICT[style].open_delim))
               \ .. strcharpart(lineA, cA - 1)
       setline(lA, newline)
-      echomsg '[RemoveSurrounding] lineA(after): ' .. getline(lA)
+      # echomsg '[RemoveSurrounding] lineA(after): ' .. getline(lA)
 
       # Remove right delimiter
       const lB = interval[1][0]
       var cB = interval[1][1]
-      echomsg '[RemoveSurrounding] Range ends at: [' .. lB .. ',' .. cB .. ']'
+      # echomsg '[RemoveSurrounding] Range ends at: [' .. lB .. ',' .. cB .. ']'
 
       # Update cB.
       # If lA == lB, then The value of cB may no longer be valid since
@@ -313,7 +313,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
       # not, then don't do anything. This behavior is compliant with
       # vim-surround
       const lineB = getline(lB)
-      echomsg '[RemoveSurrounding] lineB(before): ' .. lineB
+      # echomsg '[RemoveSurrounding] lineB(before): ' .. lineB
 
       if  cB < strchars(lineB)
         # You have delimters
@@ -325,7 +325,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
         newline = lineB
       endif
       setline(lB, newline)
-      echomsg '[RemoveSurrounding] lineB(after): ' .. getline(lB)
+      # echomsg '[RemoveSurrounding] lineB(after): ' .. getline(lB)
     endif
 enddef
 
