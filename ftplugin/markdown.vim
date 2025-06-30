@@ -23,8 +23,15 @@ var todo_items = [
   {plug: '<Plug>MarkdownTodoPrevious',    key: 'tdp', func: 'MaturityPrevious'},
 ]
 
+# 动态创建命令和映射
 for item in todo_items
-  # 映射到 <Plug>
+  # 1. 定义命令接口
+  # -range 会自动处理 normal 模式下的计数和 visual 模式下的选区
+  # 必须使用完整的 autoload 路径，因为 execute 的上下文无法解析脚本本地的 import 别名
+  execute $'command! -range Todo{item.func} call mplus#todo#{item.func}(<line1>, <line2>)'
+
+  # 2. 映射快捷键到 <Plug>
+  # 如果用户没有自定义 <Plug> 映射，则创建默认的快捷键
   if !hasmapto(item.plug)
     if empty(mapcheck($'<leader>{item.key}', 'n', 1))
       execute $'nnoremap <buffer> <leader>{item.key} {item.plug}'
@@ -34,19 +41,14 @@ for item in todo_items
     endif
   endif
 
-  # <Plug> 实现 - 行级别操作
+  # 3. <Plug> 的具体实现
+  # 如果 <Plug> 没有被任何键映射，则定义其默认行为
+  # 此处调用 :Todo{item.func} 命令是正确的，因为命令是在全局定义的
   if empty(maparg(item.plug))
-    nnoremap <script> <buffer> {item.plug} <Cmd>call todo.{item.func}(line("."), line("."))<CR>
-    xnoremap <script> <buffer> {item.plug} <Cmd>call todo.{item.func}(line("."), line("."))<CR>
+    execute $'nnoremap <script> <buffer> {item.plug} :Todo{item.func}<CR>'
+    execute $'xnoremap <script> <buffer> {item.plug} :Todo{item.func}<CR>'
   endif
 endfor
-
-# 命令接口 - 兼容 vim-quickui 和 vim-navigator 等第三方插件
-command! -range TodoCheckboxToggle call todo.CheckboxToggle(<line1>, <line2>)
-command! -range TodoDoneToggle call todo.DoneToggle(<line1>, <line2>)
-command! -range TodoSuspendToggle call todo.SuspendToggle(<line1>, <line2>)
-command! -range TodoMaturityNext call todo.MaturityNext(<line1>, <line2>)
-command! -range TodoMaturityPrevious call todo.MaturityPrevious(<line1>, <line2>)
 
 # Text Formatting --------------------------------------------------------{{{1
 
