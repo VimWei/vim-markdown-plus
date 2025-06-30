@@ -36,8 +36,8 @@ for item in todo_items
 
   # <Plug> 实现 - 行级别操作
   if empty(maparg(item.plug))
-    execute $'nnoremap <script> <buffer> {item.plug} :call todo.{item.func}(line("."), line("."))<CR>'
-    execute $'xnoremap <script> <buffer> {item.plug} :<C-u>call todo.{item.func}(line("."), line("."))<CR>'
+    nnoremap <script> <buffer> {item.plug} <Cmd>call todo.{item.func}(line("."), line("."))<CR>
+    xnoremap <script> <buffer> {item.plug} <Cmd>call todo.{item.func}(line("."), line("."))<CR>
   endif
 endfor
 
