@@ -341,39 +341,20 @@ export def RemoveAll(style: string, type: string = '')
     # line and column of point A
     var lA = line("'[")
     var cA = type == 'line' ? 1 : charcol("'[")
-    # echomsg '[SurroundSmart] line and column of point A: [' .. lA .. ',' .. cA .. ']'
+    # echomsg '[RemoveAll] line and column of point A: [' .. lA .. ',' .. cA .. ']'
 
     # line and column of point B
     var lB = line("']")
     var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
-    # echomsg '[SurroundSmart] line and column of point B: [' .. lB .. ',' .. cB .. ']'
+    # echomsg '[RemoveAll] line and column of point B: [' .. lB .. ',' .. cB .. ']'
 
     # -------- SMART DELIMITERS BEGIN ---------------------------
-    # We check conditions like the following and we adjust the style
-    # delimiters
-    # We assume that the existing style ranges are (C,D) and (E,F) and we want
-    # to place (A,B) as in the picture
-    #
-    # -E-------A------------
-    # ------------F---------
-    # ------------C------B--
-    # --------D-------------
-    #
-    # We want to get:
-    #
-    # -E------FA------------
-    # ----------------------
-    # ------------------BC--
-    # --------D-------------
-    #
-    # so that all the styles are visible
-
     # Check if A falls in an existing interval
     cursor(lA, cA)
     var cA_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     var open_delim = ''
     var old_right_delimiter = ''
-    # echomsg '[SurroundSmart] check point A IsInRange ...'
+    # echomsg '[RemoveAll] check point A IsInRange ...'
     var found_interval = utils.IsInRange()
     if !empty(found_interval)
         var found_style = keys(found_interval)[0]
@@ -383,23 +364,6 @@ export def RemoveAll(style: string, type: string = '')
         open_delim = old_right_delimiter
     endif
 
-    # Try to preserve overlapping ranges by moving the delimiters.
-    # For example. If we have the pairs (C, D) and (E,F) as it follows:
-    # ------C-------D------E------F
-    #  and we want to add (A, B) as it follows
-    # ------C---A---D-----E--B---F
-    #  then the results becomes a mess. The idea is to move D before A and E
-    #  after E, thus obtaining:
-    # ------C--DA-----------BE----F
-    #
-    # TODO:
-    # If you don't want to try to automatically adjust existing ranges, then
-    # remove 'old_right_delimiter' and 'old_left_limiter' from what follows,
-    # AND don't remove anything between A and B
-    #
-    # TODO: the following is specifically designed for markdown, so if you use
-    # for other languages, you may need to modify it!
-    #
     var toA = ''
     if !empty(found_interval) && old_right_delimiter != open_delim
         toA = strcharpart(getline(lA), 0, cA - 1)->substitute('\s*$', '', '')
@@ -416,7 +380,7 @@ export def RemoveAll(style: string, type: string = '')
     var cB_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     var close_delim = ''
     var old_left_delimiter = ''
-    # echomsg '[SurroundSmart] check point B IsInRange ...'
+    # echomsg '[RemoveAll] check point B IsInRange ...'
     found_interval = utils.IsInRange()
     if !empty(found_interval)
         var found_style = keys(found_interval)[0]
@@ -436,12 +400,8 @@ export def RemoveAll(style: string, type: string = '')
     else
         fromB = strcharpart(getline(lB), cB)
     endif
-    # echomsg '[SurroundSmart] SMART DELIMITERS processed.'
+    # echomsg '[RemoveAll] SMART DELIMITERS processed.'
     # ------- SMART DELIMITERS PART END -----------
-    # We have compute the partial strings until A and the partial string that
-    # leaves B. Existing delimiters are set.
-    # Next, we have to adjust the text between A and B, by removing all the
-    # possible delimiters left between them.
 
     # If on the same line
     if lA == lB
@@ -453,9 +413,9 @@ export def RemoveAll(style: string, type: string = '')
         if style != 'markdownCode'
             A_to_B = RemoveDelimiters(A_to_B)
         endif
-        echom $'toA: ' .. toA
-        echom $'fromB: ' .. fromB
-        echom $'A_to_B:' .. A_to_B
+        # echom $'toA: ' .. toA
+        # echom $'fromB: ' .. fromB
+        # echom $'A_to_B:' .. A_to_B
         # echom '----------\n'
 
         # Set the whole line
