@@ -58,6 +58,7 @@ var styles = [
   {plug: '<Plug>MarkdownItalic',  key: 'i', style: 'markdownItalic'},
   {plug: '<Plug>MarkdownStrike',  key: 's', style: 'markdownStrike'},
   {plug: '<Plug>MarkdownCode',    key: 'c', style: 'markdownCode'},
+  {plug: '<Plug>MarkdownRemoveAll',  key: 'd', style: 'markdownRemoveAll'},
 ]
 
 for item in styles

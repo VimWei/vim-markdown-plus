@@ -333,15 +333,3 @@ export def KeysFromValue(dict: dict<string>, target_value: string): list<string>
  # Given a value, return all the keys associated to it
  return keys(filter(copy(dict), $'v:val == "{escape(target_value, "\\")}"'))
 enddef
-
-# IsOnProp ---------------------------------------------------------------{{{2
-# Multibyte support: Uses charcol() for character-based column positions
-export def IsOnProp(): dict<any>
-  var prop = prop_find({type: prop_name, 'col': charcol('.')}, 'b')
-  if has_key(prop, 'id')
-    if line('.') != prop.lnum || charcol('.') > prop.col + prop.length
-      prop = {}
-    endif
-  endif
-  return prop
-enddef
