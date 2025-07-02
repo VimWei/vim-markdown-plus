@@ -336,7 +336,7 @@ export def RemoveSurrounding(range_info: dict<list<list<number>>> = {})
 enddef
 
 # RemoveAll --------------------------------------------------------------{{{2
-export def RemoveAll()
+export def RemoveAll(style: string, type: string = '')
     # TODO could be refactored to increase speed, but it may not be necessary
     const range_info = utils.IsInRange()
     const syn_info = synIDattr(synID(line("."), byteidx(getline('.'), charcol('.') - 1) + 1, 1), "name")
