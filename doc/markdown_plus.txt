@@ -61,7 +61,7 @@ rule that is defined in the original syntax file.
 3.1 Text Formatting                    *markdown-plus-text-formatting*
 
 The following mappings are designed to be "smart toggles." They work in
-Visual and Operator-pending modes. When used, they will either add the 
+Visual and Operator-pending modes. When used, they will either add the
 specified formatting or remove it if it's already present.
 
 Visual mappings for the selection:
@@ -69,18 +69,21 @@ Visual mappings for the selection:
 - `<localleader>i`: Toggle italic
 - `<localleader>s`: Toggle strikethrough
 - `<localleader>c`: Toggle inline code
+- `<localleader>d`: Remove all text style
 
 Operator-pending mappings for any text object or motion:
 - `<localleader>b` + {motion}: Toggle bold
 - `<localleader>i` + {motion}: Toggle italic
 - `<localleader>s` + {motion}: Toggle strikethrough
 - `<localleader>c` + {motion}: Toggle inline code
+- `<localleader>d` + {motion}: Remove all text style
 
 Plug mappings (for custom key bindings):
 - `<Plug>MarkdownBold`: Toggle bold formatting
 - `<Plug>MarkdownItalic`: Toggle italic formatting
 - `<Plug>MarkdownStrike`: Toggle strikethrough formatting
 - `<Plug>MarkdownCode`: Toggle inline code formatting
+- `<Plug>MarkdownRemoveAll`: Remove all text style
 
 These Plug mappings can be remapped to different keys if needed. For example:
 >

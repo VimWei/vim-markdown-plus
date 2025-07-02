@@ -11,7 +11,7 @@ export def ToggleSurround(style: string, type: string = '')
     # echomsg '```echomsg ------------------------------------'
     # echomsg '[ToggleSurround] start: ' .. style
     if style == 'markdownRemoveAll'
-        RemoveAll(type)
+        RemoveAll(style, type)
         return
     endif
     # echomsg '[ToggleSurround] check cursor IsInRange ...'
@@ -338,39 +338,161 @@ enddef
 
 # RemoveAll --------------------------------------------------------------{{{2
 export def RemoveAll(style: string, type: string = '')
-    # TODO could be refactored to increase speed, but it may not be necessary
-    const range_info = utils.IsInRange()
-    const syn_info = synIDattr(synID(line("."), byteidx(getline('.'), charcol('.') - 1) + 1, 1), "name")
-    const is_quote_block = getline('.') =~ '^>\s'
+    # line and column of point A
+    var lA = line("'[")
+    var cA = type == 'line' ? 1 : charcol("'[")
+    # echomsg '[SurroundSmart] line and column of point A: [' .. lA .. ',' .. cA .. ']'
 
-    # If on plain text, do nothing, just execute a normal! <BS>
-    if empty(range_info)
-            && syn_info != 'markdownCodeBlock' && !is_quote_block
-        exe "norm! \<BS>"
-        return
+    # line and column of point B
+    var lB = line("']")
+    var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
+    # echomsg '[SurroundSmart] line and column of point B: [' .. lB .. ',' .. cB .. ']'
+
+    # -------- SMART DELIMITERS BEGIN ---------------------------
+    # We check conditions like the following and we adjust the style
+    # delimiters
+    # We assume that the existing style ranges are (C,D) and (E,F) and we want
+    # to place (A,B) as in the picture
+    #
+    # -E-------A------------
+    # ------------F---------
+    # ------------C------B--
+    # --------D-------------
+    #
+    # We want to get:
+    #
+    # -E------FA------------
+    # ----------------------
+    # ------------------BC--
+    # --------D-------------
+    #
+    # so that all the styles are visible
+
+    # Check if A falls in an existing interval
+    cursor(lA, cA)
+    var cA_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
+    var open_delim = ''
+    var old_right_delimiter = ''
+    # echomsg '[SurroundSmart] check point A IsInRange ...'
+    var found_interval = utils.IsInRange()
+    if !empty(found_interval)
+        var found_style = keys(found_interval)[0]
+        old_right_delimiter = constants.TEXT_STYLES_DICT[found_style].open_delim
+    endif
+    if cA_text_style =~ 'Delimiter'
+        open_delim = old_right_delimiter
     endif
 
-    # Check markdownCodeBlocks
-    if syn_info == 'markdownCodeBlock'
-        code.UnsetBlock(line('.'), line('.'))
-        return
+    # Try to preserve overlapping ranges by moving the delimiters.
+    # For example. If we have the pairs (C, D) and (E,F) as it follows:
+    # ------C-------D------E------F
+    #  and we want to add (A, B) as it follows
+    # ------C---A---D-----E--B---F
+    #  then the results becomes a mess. The idea is to move D before A and E
+    #  after E, thus obtaining:
+    # ------C--DA-----------BE----F
+    #
+    # TODO:
+    # If you don't want to try to automatically adjust existing ranges, then
+    # remove 'old_right_delimiter' and 'old_left_limiter' from what follows,
+    # AND don't remove anything between A and B
+    #
+    # TODO: the following is specifically designed for markdown, so if you use
+    # for other languages, you may need to modify it!
+    #
+    var toA = ''
+    if !empty(found_interval) && old_right_delimiter != open_delim
+        toA = strcharpart(getline(lA), 0, cA - 1)->substitute('\s*$', '', '')
+            .. $'{old_right_delimiter}'
+    elseif !empty(found_interval) && old_right_delimiter == open_delim
+        toA = strcharpart(getline(lA), 0, cA - 1)
+    else
+        # Force space
+        toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
     endif
 
-    # Text styles removal setup
-    if !empty(range_info)
-        const target = keys(range_info)[0]
-        var text_styles = copy(constants.TEXT_STYLES_DICT)
-        unlet text_styles['markdownLinkText']
+    # Check if B falls in an existing interval
+    cursor(lB, cB)
+    var cB_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
+    var close_delim = ''
+    var old_left_delimiter = ''
+    # echomsg '[SurroundSmart] check point B IsInRange ...'
+    found_interval = utils.IsInRange()
+    if !empty(found_interval)
+        var found_style = keys(found_interval)[0]
+        old_left_delimiter = constants.TEXT_STYLES_DICT[found_style].close_delim
+    endif
+    if cB_text_style =~ 'Delimiter'
+        close_delim = old_left_delimiter
+    endif
 
-        if index(keys(text_styles), target) != -1
-            RemoveSurrounding(range_info)
-        elseif target == 'markdownLinkText'
-            links.RemoveLink()
+    var fromB = ''
+    if !empty(found_interval) && old_left_delimiter != close_delim
+        # Move old_left_delimiter "outside"
+        fromB = $'{old_left_delimiter}'
+            .. strcharpart(getline(lB), cB)->substitute('^\s*', '', '')
+    elseif !empty(found_interval) && old_left_delimiter == close_delim
+        fromB = strcharpart(getline(lB), cB)
+    else
+        fromB = strcharpart(getline(lB), cB)
+    endif
+    # echomsg '[SurroundSmart] SMART DELIMITERS processed.'
+    # ------- SMART DELIMITERS PART END -----------
+    # We have compute the partial strings until A and the partial string that
+    # leaves B. Existing delimiters are set.
+    # Next, we have to adjust the text between A and B, by removing all the
+    # possible delimiters left between them.
+
+    # If on the same line
+    if lA == lB
+        # Overwrite everything that is in the middle
+        var A_to_B = ''
+        A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
+
+        # Overwrite existing styles in the middle by removing old delimiters
+        if style != 'markdownCode'
+            A_to_B = RemoveDelimiters(A_to_B)
         endif
-        return
-    endif
+        echom $'toA: ' .. toA
+        echom $'fromB: ' .. fromB
+        echom $'A_to_B:' .. A_to_B
+        # echom '----------\n'
 
-    if is_quote_block
-        quote.UnsetQuoteBlock()
+        # Set the whole line
+        setline(lA, toA .. A_to_B .. fromB)
+
+    else
+        # Set line A
+        var afterA = strcharpart(getline(lA), cA - 1)
+
+        if style != 'markdownCode'
+            afterA = RemoveDelimiters(afterA)
+        endif
+
+        var lineA = toA .. afterA
+        setline(lA, lineA)
+
+        # Set line B
+        var beforeB = strcharpart(getline(lB), 0, cB)
+
+        if style != 'markdownCode'
+            beforeB = RemoveDelimiters(beforeB)
+        endif
+
+        var lineB = beforeB .. fromB
+        setline(lB, lineB)
+
+        # Fix intermediate lines
+        var ii = 1
+        while lA + ii < lB
+            var middleline = getline(lA + ii)
+
+            if style != 'markdownCode'
+                middleline = RemoveDelimiters(middleline)
+            endif
+
+            setline(lA + ii, middleline)
+            ii += 1
+        endwhile
     endif
 enddef
