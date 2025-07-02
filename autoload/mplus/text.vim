@@ -79,34 +79,6 @@ export def SurroundSmart(style: string, type: string = '')
     # It tries to preserve the style.
     # In general, you may want to pass constant.TEXT_STYLES_DICT as a parameter.
 
-    def RemoveDelimiters(to_overwrite: string): string
-        # Used for removing all the delimiters between A and B.
-
-        var overwritten = to_overwrite
-
-        # This is needed to remove all existing text-styles between A and B, i.e. we
-        # want to override existing styles.
-        # Note that we don't want to remove links between A and B
-        const styles_to_remove = keys(constants.TEXT_STYLES_DICT)
-            ->filter("v:val !~ '\\v(markdownLinkText)'")
-
-        for k in styles_to_remove
-            # Remove existing open delimiters
-            var regex = constants.TEXT_STYLES_DICT[k].open_regex
-            var to_remove = constants.TEXT_STYLES_DICT[k].open_delim
-            overwritten = overwritten
-                ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
-
-            # Remove existing close delimiters
-            regex = constants.TEXT_STYLES_DICT[k].close_regex
-            to_remove = constants.TEXT_STYLES_DICT[k].close_delim
-            overwritten = overwritten
-                ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
-        endfor
-        # echomsg '[SurroundSmart] Remove all existing text-styles between A and B'
-        return overwritten
-    enddef
-
     # if getcharpos("'[") == getcharpos("']")
     #   return
     # endif
@@ -275,6 +247,35 @@ export def SurroundSmart(style: string, type: string = '')
 enddef
 
 # Remove -----------------------------------------------------------------{{{1
+# RemoveDelimiters -------------------------------------------------------{{{2
+def RemoveDelimiters(to_overwrite: string): string
+    # Used for removing all the delimiters between A and B.
+
+    var overwritten = to_overwrite
+
+    # This is needed to remove all existing text-styles between A and B, i.e. we
+    # want to override existing styles.
+    # Note that we don't want to remove links between A and B
+    const styles_to_remove = keys(constants.TEXT_STYLES_DICT)
+        ->filter("v:val !~ '\\v(markdownLinkText)'")
+
+    for k in styles_to_remove
+        # Remove existing open delimiters
+        var regex = constants.TEXT_STYLES_DICT[k].open_regex
+        var to_remove = constants.TEXT_STYLES_DICT[k].open_delim
+        overwritten = overwritten
+            ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
+
+        # Remove existing close delimiters
+        regex = constants.TEXT_STYLES_DICT[k].close_regex
+        to_remove = constants.TEXT_STYLES_DICT[k].close_delim
+        overwritten = overwritten
+            ->substitute(regex, (m) => substitute(m[0], $'\V{to_remove}', '', 'g'), 'g')
+    endfor
+    # echomsg '[SurroundSmart] Remove all existing text-styles between A and B'
+    return overwritten
+enddef
+
 # RemoveSurrounding ------------------------------------------------------{{{2
 # Multibyte support: All line/column positions are 1-based character indices
 # Input: interval: [[lA, cA], [lB, cB]] (1-based, character)
