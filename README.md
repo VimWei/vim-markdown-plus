@@ -5,20 +5,22 @@
 This plugin complements [vim-markdown](https://github.com/tpope/vim-markdown) and [wiki.vim](https://github.com/lervag/wiki.vim), providing advanced Markdown editing features. It is designed for seamless integration and a consistent, efficient workflow.
 
 ## Features
-- Conceal markdown link
-- Smart toggling for gq format
-- Smart toggling for bold, italic, strikethrough, and code
-- Todo list management and Checkbox syntax fix
 - Work alongside tpope/vim-markdown and lervag/wiki.vim
+- Smart toggling Bold, Italic, Strike, inline Code and Code Block
+- Remove all markdown text formatting
+- Todo list management and Checkbox syntax fix
+- Smart toggling markdown URL Link and Image Link
+- Syntax: Conceal markdown link
+- Smart toggling for gq format
 
 ## Installation
 
-**With vim-plug:**
+* **With vim-plug:**
 ```vim
 Plug 'VimWei/vim-markdown-plus'
 ```
 
-**Or with Vim built-in packages:**
+* **Or with Vim built-in packages:**
 ```sh
 mkdir -p ~/.vim/pack/markdown/start
 cd ~/.vim/pack/markdown/start

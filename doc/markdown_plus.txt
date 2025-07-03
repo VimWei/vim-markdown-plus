@@ -20,7 +20,6 @@ CONTENTS                                     *markdown-plus-contents*
    4.1 Todo Management................|markdown-plus-todo-commands|
    4.2 List Formatting................|markdown-plus-list-formatting|
 5. Options............................|markdown-plus-options|
-6. Markdown Link Conceal Enhancement..|markdown-plus-link-conceal|
 
 ======================================================================
 1. INTRODUCTION                              *markdown-plus-introduction*
@@ -28,7 +27,7 @@ CONTENTS                                     *markdown-plus-contents*
 This plugin enhances Markdown editing in Vim by providing essential tools
 missing from tpope/vim-markdown and lervag/wiki.vim. It features intuitive
 text styling, code block formatting, checkbox toggling, link and list
-management, and more—all designed for an efficient, seamless workflow with
+management, and more — all designed for an efficient, seamless workflow with
 smart, context-aware mappings that naturally extend Vim-markdown.
 
 ======================================================================
@@ -109,11 +108,11 @@ These Plug mappings can be remapped to different keys if needed. For example:
 These mappings provide an efficient way to manage todo lists.
 
 Mappings:
-- `<leader>tdc`: Toggle checkbox (add/remove `[ ]`)
-- `<leader>tdd`: Toggle between pending `[ ]` and done `[x]`
-- `<leader>tds`: Toggle between pending `[ ]` and suspended `[-]`
-- `<leader>tdn`: Change to next maturity level
-- `<leader>tdp`: Change to previous maturity level
+- `<localleader>tc`: Toggle checkbox (add/remove `[ ]`)
+- `<localleader>td`: Toggle between pending `[ ]` and done `[x]`
+- `<localleader>ts`: Toggle between pending `[ ]` and suspended `[-]`
+- `<localleader>tn`: Change to next maturity level
+- `<localleader>tp`: Change to previous maturity level
 
 Plug mappings (for custom key bindings):
 - `<Plug>MarkdownTodoCheckbox`: Toggle checkbox formatting
@@ -135,19 +134,19 @@ Maturity levels cycle through: `[ ]` > `[.]` > `[o]` > `[O]` > `[x]`
 
 Link and image operations are now fully context-aware and streamlined.
 
-`<leader>mll`
+`<lcoalleader>ll`
     Smartly toggles a regular Markdown link (`[text](url)`):
     - In Normal mode: acts as an operator (g@), so you can use motions (e.g. `<leader>mlliw`).
     - In Visual mode: applies to the selection.
     - If the target is not a link, creates one (prompts for URL if needed).
     - If the target is already a link, removes the link wrapper, keeping the text.
 
-`<leader>mpp`
+`<localleader>pp`
     Smartly toggles an image link (`![alt](url)`):
     - Usage is the same as above; supports operator, visual, and normal modes.
     - If not an image link, one will be created; if one already exists, it will be removed.
 
-`<leader>mlu`
+`<localleader>lu`
     Unwraps a Markdown link, leaving only the URL as plain text.
     Example: `[text](url)` → `url`
 
