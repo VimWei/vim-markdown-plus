@@ -1,6 +1,6 @@
 vim9script
 
-import autoload 'mplus/constants.vim' as constants
+import autoload './constants.vim' as constants
 
 # ToggleCodeBlock --------------------------------------------------------{{{1
 export def ToggleCodeBlock(firstline: number, lastline: number)

@@ -2,9 +2,6 @@ vim9script
 
 import autoload './constants.vim' as constants
 import autoload './utils.vim' as utils
-import autoload './links.vim' as links
-import autoload './code.vim' as code
-import autoload './quote.vim' as quote
 
 # ToggleSurround ---------------------------------------------------------{{{1
 export def ToggleSurround(style: string, type: string = '')

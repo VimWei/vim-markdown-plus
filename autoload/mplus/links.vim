@@ -2,7 +2,6 @@ vim9script
 
 import autoload './constants.vim' as constants
 import autoload './utils.vim' as utils
-# import autoload './ftplugin/markdown.vim'
 
 var main_id: number
 var prompt_id: number
@@ -19,7 +18,7 @@ var links_popup_opts: dict<any>
 var large_files_threshold: number
 
 const references_comment =
-  "<!-- DO NOT REMOVE vim-markdown-extras references DO NOT REMOVE-->"
+  "<!-- DO NOT REMOVE vim-markdown-plus references DO NOT REMOVE-->"
 
 def InitScriptLocalVars()
   # Set script-local variables
