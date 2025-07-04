@@ -117,7 +117,3 @@ vnoremap <leader>mp <ESC>`>a]()<ESC>`<i![<ESC>`>5l
 # 删除光标所在处的链接或图片链接，link picture remove
 # 详情查阅 ../../autoload/Markdown.vim
 nnoremap <leader>mlr :call Markdown#RemoveLinkAtCursor()<CR>
-
-# Link manipulation
-# "u"nwrap link, keep URL as text
-nnoremap <localleader>lu :call mplus#link#RemoveLinkButKeepUrl()<CR>

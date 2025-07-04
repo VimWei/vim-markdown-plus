@@ -10,33 +10,70 @@ export def WikiLinkToggle(type: string)
     var save_reg_type = getregtype('"')
 
     try
-        # 2. Reliably determine user intent by checking the cursor position.
-        #    This avoids all bugs related to reading operator marks ('<, '>).
-        var lnum = line('.')
-        var cursor_bcol = col('.')
-        var links_on_line: list<any> = wiki#link#get_all_from_range(lnum, lnum)
-        var link_under_cursor: dict<any> = {}
+        # Use the '[ and '] marks, which Vim sets for the last operated-on or
+        # visually selected text. This works for both visual mode and operators.
+        var sel_start_pos = getpos("'[")
+        var sel_end_pos = getpos("']")
 
-        for link in links_on_line
-            var link_start_bcol = link.pos_start[1]
-            var link_end_bcol = link.pos_end[1]
+        # If the marks are invalid (e.g., no previous selection/operator),
+        # we can't determine a range, so we default to creating a link.
+        if sel_start_pos[1] == 0 && sel_start_pos[2] == 0
+            wiki#link#transform_operator(type)
+            return
+        endif
 
-            if cursor_bcol >= link_start_bcol && cursor_bcol < link_end_bcol
-                link_under_cursor = link
-                break
+        var links_on_lines = wiki#link#get_all_from_range(sel_start_pos[1], sel_end_pos[1])
+        var links_to_delete = []
+
+        for link in links_on_lines
+            # For linewise selection, all links on the selected lines are targeted.
+            if visualmode() == 'V'
+                add(links_to_delete, link)
+                continue
+            endif
+
+            # For charwise and blockwise selection, check for overlap.
+            var l = link.pos_start[0]
+            var ls = link.pos_start[1]
+            var le = link.pos_end[1]
+
+            var ssl = sel_start_pos[1]
+            var ssc = sel_start_pos[2]
+            var sel = sel_end_pos[1]
+            var sec = sel_end_pos[2]
+
+            var is_in_selection = false
+            if l > ssl && l < sel # Link is on a line fully within the selection
+                is_in_selection = true
+            elseif l == ssl && l < sel # Link is on the first line of a multi-line selection
+                if le > ssc
+                    is_in_selection = true
+                endif
+            elseif l > ssl && l == sel # Link is on the last line of a multi-line selection
+                if ls < sec
+                    is_in_selection = true
+                endif
+            elseif l == ssl && l == sel # Link is on the same line as the selection
+                if max([ls, ssc]) < min([le, sec])
+                    is_in_selection = true
+                endif
+            endif
+
+            if is_in_selection
+                add(links_to_delete, link)
             endif
         endfor
 
-        # 3. Execute the action based on the determined intent.
-        if !empty(link_under_cursor)
-            # Intent: REMOVE link under cursor.
-            setpos('.', [0, link_under_cursor.pos_start[0], link_under_cursor.pos_start[1], 0])
-            wiki#link#remove()
+        if !empty(links_to_delete)
+            # Intent: REMOVE links inside the selection.
+            for link in reverse(links_to_delete)
+                setpos('.', [0, link.pos_start[0], link.pos_start[1], 0])
+                wiki#link#remove()
+            endfor
         else
             # Intent: CREATE a new link using the operator's motion.
             wiki#link#transform_operator(type)
         endif
-
     finally
         # 4. Sandbox: ALWAYS restore the clipboard to its original state.
         #    This cleans up any pollution from the wiki.vim functions and
