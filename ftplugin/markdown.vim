@@ -79,27 +79,26 @@ for item in styles
 endfor
 
 # Link Management --------------------------------------------------------{{{1
+var link_items = [
+    {plug: '<Plug>WikiLinkToggle',  key: 'l'},
+]
 
-# Link/Image Toggling (intelligent switch)
-# <leader>mll: Toggle a regular [link]() - create if none, remove if exists
-# Normal mode - use as operator
-nnoremap <silent> <localleader>ll :set opfunc=mplus#link#ToggleLinkAtCursor<CR>g@
-# Visual mode - apply to selection
-xnoremap <silent> <localleader>ll :<C-u>call mplus#link#ToggleLinkAtCursor()<CR>
-# Operator-pending mode - apply to motion
-onoremap <silent> <localleader>ll :normal v<CR>
+for item in link_items
+    # 映射到 <Plug>
+    if !hasmapto(item.plug)
+        if empty(mapcheck($'<localleader>{item.key}', 'n', 1))
+            execute $'nnoremap <buffer> <localleader>{item.key} {item.plug}'
+        endif
+        if empty(mapcheck($'<localleader>{item.key}', 'x', 1))
+            execute $'xnoremap <buffer> <localleader>{item.key} {item.plug}'
+        endif
+    endif
 
-# <leader>mpp: Toggle an ![image link]() - create if none, remove if exists
-# Normal mode - use as operator
-nnoremap <silent> <localleader>pp :set opfunc=mplus#link#ToggleImageLinkAtCursor<CR>g@
-# Visual mode - apply to selection
-xnoremap <silent> <localleader>pp :<C-u>call mplus#link#ToggleImageLinkAtCursor()<CR>
-# Operator-pending mode - apply to motion
-onoremap <silent> <localleader>pp :normal v<CR>
-
-# Link manipulation
-# "u"nwrap link, keep URL as text
-nnoremap <localleader>lu :call mplus#link#RemoveLinkButKeepUrl()<CR>
+    # <Plug> 实现
+    if empty(maparg(item.plug))
+        execute $'noremap <script> <buffer> {item.plug} <ScriptCmd>&l:opfunc = function(link.WikiLinkToggle)<cr>g@'
+    endif
+endfor
 
 # List Formatting --------------------------------------------------------{{{1
 
@@ -120,3 +119,7 @@ vnoremap <leader>mp <ESC>`>a]()<ESC>`<i![<ESC>`>5l
 # 删除光标所在处的链接或图片链接，link picture remove
 # 详情查阅 ../../autoload/Markdown.vim
 nnoremap <leader>mlr :call Markdown#RemoveLinkAtCursor()<CR>
+
+# Link manipulation
+# "u"nwrap link, keep URL as text
+nnoremap <localleader>lu :call mplus#link#RemoveLinkButKeepUrl()<CR>
