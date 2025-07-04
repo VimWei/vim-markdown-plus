@@ -1,21 +1,46 @@
 vim9script
 
 export def WikiLinkToggle(type: string)
-    # 1. 获取操作范围的行号
-    var line1 = getpos("'<")[1]
-    var line2 = getpos("'>")[1]
+    # --- The Definitive Solution: Isolate State Pollution ---
+    # wiki.vim functions pollute the clipboard (unnamed register) . The
+    # solution is to create a "sandbox" for our function.
 
-    # 2. 在这个行范围内搜索所有的链接
-    var links_in_range: list<any> = wiki#link#get_all_from_range(line1, line2)
+    # 1. Sandbox: Save the clipboard state.
+    var save_reg = getreg('"')
+    var save_reg_type = getregtype('"')
 
-    # 3. 根据搜索结果进行决策
-    if !empty(links_in_range)
-        # 如果在范围内找到了至少一个链接，则用户的意图是删除。
-        # 为了使 toggle 行为可预测，我们只操作找到的第一个链接。
-        var link_to_remove = links_in_range[0]
-        call(link_to_remove.remove, [])
-    else
-        # 如果没有找到任何链接，则用户的意图是创建链接。
-        wiki#link#transform_operator(type)
-    endif
+    try
+        # 2. Reliably determine user intent by checking the cursor position.
+        #    This avoids all bugs related to reading operator marks ('<, '>).
+        var lnum = line('.')
+        var cursor_bcol = col('.')
+        var links_on_line: list<any> = wiki#link#get_all_from_range(lnum, lnum)
+        var link_under_cursor: dict<any> = {}
+
+        for link in links_on_line
+            var link_start_bcol = link.pos_start[1]
+            var link_end_bcol = link.pos_end[1]
+
+            if cursor_bcol >= link_start_bcol && cursor_bcol < link_end_bcol
+                link_under_cursor = link
+                break
+            endif
+        endfor
+
+        # 3. Execute the action based on the determined intent.
+        if !empty(link_under_cursor)
+            # Intent: REMOVE link under cursor.
+            setpos('.', [0, link_under_cursor.pos_start[0], link_under_cursor.pos_start[1], 0])
+            wiki#link#remove()
+        else
+            # Intent: CREATE a new link using the operator's motion.
+            wiki#link#transform_operator(type)
+        endif
+
+    finally
+        # 4. Sandbox: ALWAYS restore the clipboard to its original state.
+        #    This cleans up any pollution from the wiki.vim functions and
+        #    prevents our function from affecting subsequent user actions.
+        call setreg('"', save_reg, save_reg_type)
+    endtry
 enddef

@@ -5,6 +5,7 @@ g:maplocalleader = "\<space>m"
 import autoload 'mplus/code.vim' as code
 import autoload 'mplus/todo.vim' as todo
 import autoload 'mplus/text.vim' as text
+import autoload 'mplus/link.vim' as link
 
 # Code Blocks ------------------------------------------------------------{{{1
 
@@ -109,9 +110,6 @@ command! -range=% UngqFormat call mplus#gqformat#UngqFormat(<line1>, <line2>)
 
 finish # -----------------------------------------------------------------{{{1
 
-# 为选中的内容添加链接，link
-nnoremap <leader>ml viW<ESC>`>a]()<ESC>`<i[<ESC>`>4l
-vnoremap <leader>ml <ESC>`>a]()<ESC>`<i[<ESC>`>4l
 # 为选中的内容添加图片链接，picture
 nnoremap <leader>mp viW<ESC>`>a]()<ESC>`<i![<ESC>`>5l
 vnoremap <leader>mp <ESC>`>a]()<ESC>`<i![<ESC>`>5l
