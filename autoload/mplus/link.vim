@@ -28,14 +28,14 @@ export def WikiLinkToggle(type: string)
             return
         endif
 
-        var links_on_lines = wiki#link#get_all_from_range(sel_start_pos[1], sel_end_pos[1])
-        echomsg printf("Found %d links on lines %d-%d", len(links_on_lines), sel_start_pos[1], sel_end_pos[1])
-        var links_to_delete = []
-
         # Determine if the original operation was linewise (for deletion logic).
         # This is based on the 'type' argument passed to the operator function.
         var is_linewise_op_or_visual = type == 'line' || type == 'V'
         echomsg printf("Is linewise operation/visual: %s", string(is_linewise_op_or_visual))
+
+        var links_on_lines = wiki#link#get_all_from_range(sel_start_pos[1], sel_end_pos[1])
+        echomsg printf("Found %d links on lines %d-%d", len(links_on_lines), sel_start_pos[1], sel_end_pos[1])
+        var links_to_delete = []
 
         for link in links_on_lines
             echomsg printf("Checking link: %s (pos: %s)", link.text, string(link.pos_start))
@@ -91,19 +91,15 @@ export def WikiLinkToggle(type: string)
             endfor
         else
             echomsg "No links to delete. Proceeding to create link."
-            # If in visual mode, re-select the visual range and yank it into the unnamed register.
-            # This ensures wiki#link#transform_operator gets the correct content.
-            # 'type' will be 'v', 'V', or '^V' in visual mode.
             if type == 'v' || type == 'V' || type == '^V'
-                echomsg printf("In visual mode (%s), yanking selection to unnamed register.", type)
-                normal! gvy
+                # For visual mode, call wiki#link#transform_visual().
+                echomsg printf("In visual mode (%s), calling wiki#link#transform_visual().", type)
+                wiki#link#transform_visual()
             else
-                echomsg printf("In operator mode (%s), text should already be in unnamed register.", type)
+                # For operator mode, call wiki#link#transform_operator(type).
+                echomsg printf("In operator mode (%s), calling wiki#link#transform_operator with original type.", type)
+                wiki#link#transform_operator(type)
             endif
-            # For operator mode, Vim automatically puts the operated text into the unnamed register.
-            # Now, delegate to the original function for link creation.
-            echomsg printf("Calling wiki#link#transform_operator with type: %s", type)
-            wiki#link#transform_operator(type)
         endif
     finally
         # 4. Sandbox: ALWAYS restore the clipboard to its original state.

@@ -21,7 +21,7 @@ export def ToggleSurround(style: string, type: string = '')
         SurroundSmart(style, type)
     endif
     # echomsg '```'
-    # call Redir#redir('messages', 0, 0, 0)
+    # Redir#redir('messages', 0, 0, 0)
 enddef
 
 # Surround ---------------------------------------------------------------{{{1
