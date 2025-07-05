@@ -1,12 +1,8 @@
 vim9script
 
 export def WikiLinkToggle(type: string)
-    echomsg "--- WikiLinkToggle START ---"
-    echomsg printf("Function called with type: %s", type)
-
-    # --- The Definitive Solution: Isolate State Pollution ---
-    # wiki.vim functions pollute the clipboard (unnamed register) . The
-    # solution is to create a "sandbox" for our function.
+    # echomsg "--- WikiLinkToggle START ---"
+    # echomsg printf("Function called with type: %s", type)
 
     # 1. Sandbox: Save the clipboard state.
     var save_reg = getreg('"')
@@ -17,13 +13,13 @@ export def WikiLinkToggle(type: string)
         # visually selected text. This works for both visual mode and operators.
         var sel_start_pos = getpos("'[")
         var sel_end_pos = getpos("']")
-        echomsg printf("Selection Start Pos (\'[): %s", string(sel_start_pos))
-        echomsg printf("Selection End Pos (\']): %s", string(sel_end_pos))
+        # echomsg printf("Selection Start Pos (\'[): %s", string(sel_start_pos))
+        # echomsg printf("Selection End Pos (\']): %s", string(sel_end_pos))
 
         # If the marks are invalid (e.g., no previous selection/operator),
         # we can't determine a range, so we default to creating a link.
         if sel_start_pos[1] == 0 && sel_start_pos[2] == 0
-            echomsg "Invalid selection marks. Defaulting to transform_operator."
+            # echomsg "Invalid selection marks. Defaulting to transform_operator."
             wiki#link#transform_operator(type)
             return
         endif
@@ -31,17 +27,17 @@ export def WikiLinkToggle(type: string)
         # Determine if the original operation was linewise (for deletion logic).
         # This is based on the 'type' argument passed to the operator function.
         var is_linewise_op_or_visual = type == 'line' || type == 'V'
-        echomsg printf("Is linewise operation/visual: %s", string(is_linewise_op_or_visual))
+        # echomsg printf("Is linewise operation/visual: %s", string(is_linewise_op_or_visual))
 
         var links_on_lines = wiki#link#get_all_from_range(sel_start_pos[1], sel_end_pos[1])
-        echomsg printf("Found %d links on lines %d-%d", len(links_on_lines), sel_start_pos[1], sel_end_pos[1])
+        # echomsg printf("Found %d links on lines %d-%d", len(links_on_lines), sel_start_pos[1], sel_end_pos[1])
         var links_to_delete = []
 
         for link in links_on_lines
-            echomsg printf("Checking link: %s (pos: %s)", link.text, string(link.pos_start))
+            # echomsg printf("Checking link: %s (pos: %s)", link.text, string(link.pos_start))
             # If the original operation was linewise, all links on the selected lines are targeted for deletion.
             if is_linewise_op_or_visual
-                echomsg "Linewise operation/visual, adding link to delete queue."
+                # echomsg "Linewise operation/visual, adding link to delete queue."
                 add(links_to_delete, link)
                 continue
             endif
@@ -74,39 +70,37 @@ export def WikiLinkToggle(type: string)
             endif
 
             if is_in_selection
-                echomsg "Link is IN selection. Adding to delete queue."
+                # echomsg "Link is IN selection. Adding to delete queue."
                 add(links_to_delete, link)
             else
-                echomsg "Link is NOT in selection."
+                # echomsg "Link is NOT in selection."
             endif
         endfor
 
         if !empty(links_to_delete)
-            echomsg printf("ACTION: Deleting %d links.", len(links_to_delete))
+            # echomsg printf("ACTION: Deleting %d links.", len(links_to_delete))
             # Intent: REMOVE links inside the selection.
             for link in reverse(links_to_delete)
-                echomsg printf("Deleting link at pos: %s", string(link.pos_start))
+                # echomsg printf("Deleting link at pos: %s", string(link.pos_start))
                 setpos('.', [0, link.pos_start[0], link.pos_start[1], 0])
                 wiki#link#remove()
             endfor
         else
-            echomsg "No links to delete. Proceeding to create link."
+            # echomsg "No links to delete. Proceeding to create link."
             if type == 'v' || type == 'V' || type == '^V'
                 # For visual mode, call wiki#link#transform_visual().
-                echomsg printf("In visual mode (%s), calling wiki#link#transform_visual().", type)
+                # echomsg printf("In visual mode (%s), calling wiki#link#transform_visual().", type)
                 wiki#link#transform_visual()
             else
                 # For operator mode, call wiki#link#transform_operator(type).
-                echomsg printf("In operator mode (%s), calling wiki#link#transform_operator with original type.", type)
+                # echomsg printf("In operator mode (%s), calling wiki#link#transform_operator with original type.", type)
                 wiki#link#transform_operator(type)
             endif
         endif
     finally
         # 4. Sandbox: ALWAYS restore the clipboard to its original state.
-        #    This cleans up any pollution from the wiki.vim functions and
-        #    prevents our function from affecting subsequent user actions.
         call setreg('"', save_reg, save_reg_type)
-        echomsg "--- WikiLinkToggle END ---"
+        # echomsg "--- WikiLinkToggle END ---"
     endtry
-    Redir#redir('messages', 0, 0, 0)
+    # Redir#redir('messages', 0, 0, 0)
 enddef
