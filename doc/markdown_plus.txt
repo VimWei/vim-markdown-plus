@@ -13,12 +13,13 @@ CONTENTS                                     *markdown-plus-contents*
    2.2 fix checkbox before link.......|mardown-plus-fix-checkbox|
 3. Mappings...........................|markdown-plus-mappings|
    3.1 Text Formatting................|markdown-plus-text-formatting|
-   3.2 Code Blocks....................|markdown-plus-code-blocks|
+   3.2 Link Management................|markdown-plus-link-management|
    3.3 Todo Status....................|markdown-plus-todo-status|
-   3.4 Link Management................|markdown-plus-link-management|
+   3.4 Code Blocks....................|markdown-plus-code-blocks|
 4. Commands...........................|markdown-plus-commands|
    4.1 Todo Management................|markdown-plus-todo-commands|
    4.2 List Formatting................|markdown-plus-list-formatting|
+   4.3 Code Block Commands............|markdown-plus-codeblock-commands|
 5. Options............................|markdown-plus-options|
 
 ======================================================================
@@ -91,16 +92,29 @@ These Plug mappings can be remapped to different keys if needed. For example:
 <
 
 ----------------------------------------------------------------------
-3.2 Code Blocks                            *markdown-plus-code-blocks*
+3.2 Link Management                      *markdown-plus-link-management*
 
-`<leader>cb`
-    In Normal mode: wraps the current line in a fenced code block.
-    In Visual mode: wraps the selected lines in a fenced code block.
+The following mappings are designed to be "smart toggles." They work in
+Visual and Operator-pending modes. When used, they will either add the
+specified link formatting or remove it if it's already present.
 
-:ToggleCodeBlock [range]
-    Command to toggle code block formatting for the given line range.
-    If lines are not in a code block, wraps them in one.
-    If lines are already in a code block, removes the block formatting.
+Visual mappings for the selection:
+- `<localleader>l`: Toggle wiki-style link
+- `<localleader>p`: Toggle image link
+
+Operator-pending mappings for any text object or motion:
+- `<localleader>l` + {motion}: Toggle wiki-style link
+- `<localleader>p` + {motion}: Toggle image link
+
+Plug mappings (for custom key bindings):
+- `<Plug>WikiLinkToggle`: Toggle wiki-style link
+- `<Plug>MarkdownImgLinkToggle`: Toggle image link
+
+These Plug mappings can be remapped to different keys if needed. For example:
+>
+    nmap <leader>l <Plug>WikiLinkToggle
+    xmap <leader>l <Plug>WikiLinkToggle
+<
 
 ----------------------------------------------------------------------
 3.3 Todo Status                            *markdown-plus-todo-status*
@@ -130,25 +144,21 @@ These Plug mappings can be remapped to different keys if needed. For example:
 Maturity levels cycle through: `[ ]` > `[.]` > `[o]` > `[O]` > `[x]`
 
 ----------------------------------------------------------------------
-3.4 Link Management                      *markdown-plus-link-management*
+3.4 Code Blocks                            *markdown-plus-code-blocks*
 
-Link and image operations are now fully context-aware and streamlined.
+The following mappings provide smart toggling of fenced code blocks.
 
-`<lcoalleader>ll`
-    Smartly toggles a regular Markdown link (`[text](url)`):
-    - In Normal mode: acts as an operator (g@), so you can use motions (e.g. `<leader>mlliw`).
-    - In Visual mode: applies to the selection.
-    - If the target is not a link, creates one (prompts for URL if needed).
-    - If the target is already a link, removes the link wrapper, keeping the text.
+Visual and Normal mode mapping:
+- `<localleader>cb`: Toggle code block for the current line or selected lines
 
-`<localleader>pp`
-    Smartly toggles an image link (`![alt](url)`):
-    - Usage is the same as above; supports operator, visual, and normal modes.
-    - If not an image link, one will be created; if one already exists, it will be removed.
+Plug mapping (for custom key bindings):
+- `<Plug>MarkdownCodeBlockToggle`: Toggle code block formatting
 
-`<localleader>lu`
-    Unwraps a Markdown link, leaving only the URL as plain text.
-    Example: `[text](url)` → `url`
+This Plug mapping can be remapped to different keys if needed. For example:
+>
+    nmap <leader>cb <Plug>MarkdownCodeBlockToggle
+    xmap <leader>cb <Plug>MarkdownCodeBlockToggle
+<
 
 ======================================================================
 4. COMMANDS                                    *markdown-plus-commands*
@@ -186,6 +196,14 @@ filetype is set to markdown automatically by the plugin.
 
 :UngqFormat [range]
     Restore the original formatting of lines that were previously formatted with `gq`.
+
+----------------------------------------------------------------------
+4.3 Code Block Commands              *markdown-plus-codeblock-commands*
+
+:ToggleCodeBlock [range]
+    Toggle code block formatting for the given line range.
+    If lines are not in a code block, wraps them in one.
+    If lines are already in a code block, removes the block formatting.
 
 ======================================================================
 5. OPTIONS                                      *markdown-plus-options*
