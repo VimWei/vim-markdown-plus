@@ -81,8 +81,8 @@ endfor
 
 # Link Management --------------------------------------------------------{{{1
 var link_items = [
-    {plug: '<Plug>WikiLinkToggle',  key: 'l', func: 'WikiLinkToggle'},
-    {plug: '<Plug>MarkdownImgLinkToggle',  key: 'i', func: 'ImageLinkToggle'},
+    {plug: '<Plug>WikiLinkToggle',  key: 'l', link_type: 'wiki'},
+    {plug: '<Plug>MarkdownImgLinkToggle',  key: 'p', link_type: 'image'},
 ]
 
 for item in link_items
@@ -98,7 +98,7 @@ for item in link_items
 
     # <Plug> 实现
     if empty(maparg(item.plug))
-        execute $'noremap <script> <buffer> {item.plug} <ScriptCmd>&l:opfunc = function(link.{item.func})<cr>g@'
+        execute $'noremap <script> <buffer> {item.plug} <ScriptCmd>&l:opfunc = function(link.ToggleLink, ["{item.link_type}"])<cr>g@'
     endif
 endfor
 
