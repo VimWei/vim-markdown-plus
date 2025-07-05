@@ -1,109 +1,98 @@
 vim9script
 
-# Unified function for toggling links
-export def ToggleLink(link_type: string, type: string)
-    echomsg "--- ToggleLink START ---"
-    echomsg printf("ToggleLink called with link_type: %s, type: %s", link_type, type)
+import autoload './utils.vim' as utils
 
-    # 1. Sandbox: Save the clipboard state.
+# Unified function for toggling links ------------------------------------{{{1
+export def ToggleLink(link_type: string, type: string)
+    # --- Dependency check: require wiki#link#get_all_from_range ---
+    if !exists('*wiki#link#remove')
+        utils.Echowarn("Missing dependency: lervag/wiki.vim")
+        return
+    endif
+
+    # --- Save clipboard state (sandbox) ---
     var save_reg = getreg('"')
     var save_reg_type = getregtype('"')
 
     try
+        # --- Get selection positions ---
         # Use the '[ and '] marks, which Vim sets for the last operated-on or
         # visually selected text. This works for both visual mode and operators.
         var sel_start_pos = getpos("'[")
         var sel_end_pos = getpos("']")
-        # echomsg printf("Selection Start Pos (\'[): %s", string(sel_start_pos))
-        # echomsg printf("Selection End Pos (\']): %s", string(sel_end_pos))
 
-        # If no valid selection marks (i.e., not called via operator or visual mode),
-        # try to create link from word under cursor.
+        # --- Validate selection marks ---
         if sel_start_pos[1] == 0 && sel_start_pos[2] == 0
-            echomsg "Invalid selection marks."
+            # Invalid selection marks, abort
             return
         endif
 
-        # Determine if the original operation was linewise (for deletion logic).
+        # --- Determine if operation is linewise (for deletion logic) ---
         var is_linewise_op_or_visual = type == 'line' || type == 'V'
-        # echomsg printf("Is linewise operation/visual: %s", string(is_linewise_op_or_visual))
 
+        # --- Find all links in the selected range ---
         var links_on_lines = wiki#link#get_all_from_range(sel_start_pos[1], sel_end_pos[1])
-        # echomsg printf("Found %d links on lines %d-%d", len(links_on_lines), sel_start_pos[1], sel_end_pos[1])
         var links_to_delete = []
 
+        # --- Collect links that overlap with the selection ---
         for link in links_on_lines
-            # echomsg printf("Checking link: %s (pos: %s, type: %s)", link.text, string(link.pos_start), link.type)
-            # Now, any link found in the selection will be considered for deletion.
-
             var is_in_selection = false
             if is_linewise_op_or_visual
-                # echomsg "Linewise operation/visual, adding link to delete queue."
                 is_in_selection = true
             else
-                # echomsg "Charwise/Blockwise operation: Checking for overlap."
-                # Overlap logic
                 var l = link.pos_start[0]
                 var ls = link.pos_start[1]
                 var le = link.pos_end[1]
-
                 var ssl = sel_start_pos[1]
                 var ssc = sel_start_pos[2]
                 var sel = sel_end_pos[1]
                 var sec = sel_end_pos[2]
-
-                if l > ssl && l < sel # Link is on a line fully within the selection
+                if l > ssl && l < sel
                     is_in_selection = true
-                elseif l == ssl && l < sel # Link is on the first line of a multi-line selection
+                elseif l == ssl && l < sel
                     if le > ssc
                         is_in_selection = true
                     endif
-                elseif l > ssl && l == sel # Link is on the last line of a multi-line selection
+                elseif l > ssl && l == sel
                     if ls < sec
                         is_in_selection = true
                     endif
-                elseif l == ssl && l == sel # Link is on the same line as the selection
+                elseif l == ssl && l == sel
                     if max([ls, ssc]) < min([le, sec])
                         is_in_selection = true
                     endif
                 endif
             endif
-
             if is_in_selection
-                # echomsg "Link is IN selection. Adding to delete queue."
                 add(links_to_delete, link)
             endif
         endfor
 
+        # --- Delete links if any found, otherwise create new link ---
         if !empty(links_to_delete)
-            echomsg printf("ACTION: Deleting %d links.", len(links_to_delete))
-            # Intent: REMOVE links inside the selection.
             for link in reverse(links_to_delete)
-                # echomsg printf("Deleting link at pos: %s", string(link.pos_start))
                 setpos('.', [0, link.pos_start[0], link.pos_start[1], 0])
                 wiki#link#remove()
             endfor
         else
-            echomsg "Create link from selection."
             if link_type == 'wiki'
                 Create_wiki_link(type)
             elseif link_type == 'image'
                 Create_image_link(type)
             else
-                echomsg printf("Unknown link_type for creation: %s", link_type)
+                # Unknown link_type, do nothing
             endif
         endif
     finally
-        # 4. Sandbox: ALWAYS restore the clipboard to its original state.
+        # --- Restore clipboard state (sandbox) ---
         call setreg('"', save_reg, save_reg_type)
-        echomsg "--- ToggleLink END ---"
     endtry
-    Redir#redir('messages', 0, 0, 0)
+    # Redir#redir('messages', 0, 0, 0)
 enddef
 
-# Helper function to create a wiki link (re-uses wiki.vim functions)
+# Create a wiki link -----------------------------------------------------{{{1
 def Create_wiki_link(type: string)
-    # echomsg printf("create_wiki_link called with type: %s", type)
+    # re-uses wiki.vim functions
     if type == 'v' || type == 'V' || type == '^V'
         wiki#link#transform_visual()
     else
@@ -111,51 +100,78 @@ def Create_wiki_link(type: string)
     endif
 enddef
 
-# Helper function to create an image link and position cursor
+# Create an image link ---------------------------------------------------{{{1
 def Create_image_link(type: string)
-    var text_to_link = ''
-    var new_image_link = ''
-    if type == 'v' || type == 'V' || type == '^V'
-        var saved_view = winsaveview()
-        normal! gv
-        text_to_link = getreg('"')
-        new_image_link = printf('![%s]()', text_to_link)
-        execute "normal! gv\"_c" .. new_image_link
-        call winrestview(saved_view)
+    # --- Get selection positions and lines ---
+    var sel_start = getpos("'[")
+    var sel_end = getpos("']")
+    var start_line_num = sel_start[1]
+    var end_line_num = sel_end[1]
+    var lines = getline(start_line_num, end_line_num)
+
+    # --- Convert byte column to character column ---
+    var start_col_char = charidx(lines[0], sel_start[2] - 1) + 1
+    var end_col_char = charidx(lines[-1], sel_end[2] - 1) + 1
+
+    # --- Prepare prefix and suffix for replacement ---
+    var before = strcharpart(lines[0], 0, start_col_char - 1)
+    var after = strcharpart(lines[-1], end_col_char)
+
+    # --- Build the selected text for the image link ---
+    var selected = ''
+    var cjk_regex = '[一-龥ぁ-ゔァ-ヴー々〆〤가-힣]'
+    if len(lines) == 1
+        # Single line selection
+        var line_len = strchars(lines[0])
+        var safe_start = min([start_col_char - 1, line_len])
+        var safe_len = min([end_col_char - start_col_char + 1, line_len - safe_start])
+        selected = strcharpart(lines[0], safe_start, safe_len)
     else
-        var sel_start_pos = getpos("'[")
-        var sel_end_pos = getpos("']")
-        if sel_start_pos[1] == sel_end_pos[1]
-            text_to_link = getline(sel_start_pos[1])[sel_start_pos[2] - 1 : sel_end_pos[2] - 1]
-            new_image_link = printf('![%s]()', text_to_link)
-            var current_line = getline('.')
-            var cursor_col = col('.')
-            # Use '\V' to treat pattern literally, and escape for special regex chars.
-            # Search around cursor to ensure we replace the correct instance of the word.
-            var word_pattern = '\V' .. escape(text_to_link, '\\[]().*~^$')
-            var word_start_col = match(current_line, word_pattern, 0, cursor_col - len(text_to_link))
-            if word_start_col == -1
-                # Fallback if word not found at expected position (e.g., partial word selected by operator)
-                # This case should ideally be handled by the 'g@' operator, but as a safeguard:
-                # If we can't find the exact word, we might need to insert.
-                # For simplicity, we'll just insert at cursor if no clear replacement target.
-                # echomsg "Word not found on current line at expected position. Inserting at cursor."
-                execute "normal! i" .. new_image_link
-                word_start_col = col('.') - len(new_image_link) # Adjust start_col for cursor positioning
-            else
-                var before = current_line[0 : word_start_col - 1]
-                var after = current_line[word_start_col + len(text_to_link) :]
-                setline('.', before .. new_image_link .. after)
-            endif
+        # Multi-line selection
+        # 1. First line: only the selected part
+        var first_line_len = strchars(lines[0])
+        var safe_start = min([start_col_char - 1, first_line_len])
+        selected = strcharpart(lines[0], safe_start)
+        # 2. Middle lines: join with smart spacing
+        if len(lines) > 2
+            for lnum in range(1, len(lines) - 1)
+                var prev_last = matchstr(selected, '.$')
+                var curr_first = matchstr(lines[lnum], '^.')
+                if prev_last =~# cjk_regex && curr_first =~# cjk_regex
+                    selected ..= lines[lnum]
+                else
+                    selected ..= ' ' .. lines[lnum]
+                endif
+            endfor
+        endif
+        # 3. Last line: only the selected part, join with smart spacing
+        var last_line_len = strchars(lines[-1])
+        var safe_end_col_char = min([end_col_char, last_line_len])
+        var last_part = strcharpart(lines[-1], 0, safe_end_col_char)
+        var prev_last = matchstr(selected, '.$')
+        var curr_first = matchstr(last_part, '^.')
+        if prev_last =~# cjk_regex && curr_first =~# cjk_regex
+            selected ..= last_part
         else
-            echomsg "Can't create link for multiline text"
-            return
+            selected ..= ' ' .. last_part
         endif
     endif
+    # Remove NUL characters (safety)
+    selected = substitute(selected, '\%x00', '', 'g')
+    var text_to_link = selected
 
-    # Position cursor inside the parentheses
-    var new_line_content = getline(line('.'))
-    var new_cursor_col = match(new_line_content, escape(new_image_link, '\\[]().*~^$')) + len(new_image_link) - 1
-    # echomsg printf("Positioning cursor at line: %d, col: %d", line('.'), new_cursor_col)
-    setpos('.', [0, line('.'), new_cursor_col, 0])
+    # --- Build and insert the new image link ---
+    if empty(text_to_link)
+        return
+    endif
+    var new_image_link = printf('![%s]()', text_to_link)
+    var new_line = before .. new_image_link .. after
+    setline(start_line_num, new_line)
+    if end_line_num > start_line_num
+        call deletebufline('%', start_line_num + 1, end_line_num)
+    endif
+
+    # --- Place cursor inside the parentheses ---
+    var new_cursor_col = strchars(before .. new_image_link) - 1
+    setpos('.', [0, start_line_num, new_cursor_col, 0])
 enddef
