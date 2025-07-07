@@ -57,6 +57,13 @@ rule that is defined in the original syntax file.
 ======================================================================
 3. MAPPINGS                                    *markdown-plus-mappings*
 
+Note: `<localleader>` is determined by `g:markdown_leader` (if set), 
+otherwise falls back to `g:maplocalleader`. 
+
+You can customize it, e.g.:
+    let g:markdown_leader = '<leader>m'
+    let g:maplocalleader = '\\'
+
 ----------------------------------------------------------------------
 3.1 Text Formatting                    *markdown-plus-text-formatting*
 
@@ -82,7 +89,7 @@ Plug mappings (for custom key bindings):
 - `<Plug>MarkdownBold`: Toggle bold formatting
 - `<Plug>MarkdownItalic`: Toggle italic formatting
 - `<Plug>MarkdownStrike`: Toggle strikethrough formatting
-- `<Plug>MarkdownCode`: Toggle inline code formatting
+- `<Plug>MarkdownInlineCode`: Toggle inline code formatting
 - `<Plug>MarkdownRemoveAll`: Remove all text style
 
 These Plug mappings can be remapped to different keys if needed. For example:
