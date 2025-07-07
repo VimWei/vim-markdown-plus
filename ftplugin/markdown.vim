@@ -1,31 +1,32 @@
 vim9script
 
-g:maplocalleader = "\<space>m"
-
 import autoload 'mplus/code.vim' as code
 import autoload 'mplus/todo.vim' as todo
 import autoload 'mplus/text.vim' as text
 import autoload 'mplus/link.vim' as link
 
+# localleader ------------------------------------------------------------{{{1
+var leader = get(g:, 'markdown_leader', '<localleader>')
+
 # Text Formatting --------------------------------------------------------{{{1
 # Smart toggling for bold, italic, strikethrough, inline code, and remove all styles.
 # Supports text objects and visual mode.
 var styles = [
-    {plug: '<Plug>MarkdownBold',    key: 'b', style: 'markdownBold'},
-    {plug: '<Plug>MarkdownItalic',  key: 'i', style: 'markdownItalic'},
-    {plug: '<Plug>MarkdownStrike',  key: 's', style: 'markdownStrike'},
-    {plug: '<Plug>MarkdownCode',    key: 'c', style: 'markdownCode'},
-    {plug: '<Plug>MarkdownRemoveAll',  key: 'd', style: 'markdownRemoveAll'},
+    {plug: '<Plug>MarkdownBold',        key: 'b', style: 'markdownBold'},
+    {plug: '<Plug>MarkdownItalic',      key: 'i', style: 'markdownItalic'},
+    {plug: '<Plug>MarkdownStrike',      key: 's', style: 'markdownStrike'},
+    {plug: '<Plug>MarkdownInlineCode',  key: 'c', style: 'markdownCode'},
+    {plug: '<Plug>MarkdownRemoveAll',   key: 'd', style: 'markdownRemoveAll'},
 ]
 
 for item in styles
     # Map to <Plug> if not already mapped
     if !hasmapto(item.plug)
-        if empty(mapcheck($'<localleader>{item.key}', 'n', 1))
-            execute $'nnoremap <buffer> <localleader>{item.key} {item.plug}'
+        if empty(mapcheck($'{leader}{item.key}', 'n', 1))
+            execute $'nnoremap <buffer> {leader}{item.key} {item.plug}'
         endif
-        if empty(mapcheck($'<localleader>{item.key}', 'x', 1))
-            execute $'xnoremap <buffer> <localleader>{item.key} {item.plug}'
+        if empty(mapcheck($'{leader}{item.key}', 'x', 1))
+            execute $'xnoremap <buffer> {leader}{item.key} {item.plug}'
         endif
     endif
 
@@ -46,11 +47,11 @@ var link_items = [
 for item in link_items
     # Map to <Plug> if not already mapped
     if !hasmapto(item.plug)
-        if empty(mapcheck($'<localleader>{item.key}', 'n', 1))
-            execute $'nnoremap <buffer> <localleader>{item.key} {item.plug}'
+        if empty(mapcheck($'{leader}{item.key}', 'n', 1))
+            execute $'nnoremap <buffer> {leader}{item.key} {item.plug}'
         endif
-        if empty(mapcheck($'<localleader>{item.key}', 'x', 1))
-            execute $'xnoremap <buffer> <localleader>{item.key} {item.plug}'
+        if empty(mapcheck($'{leader}{item.key}', 'x', 1))
+            execute $'xnoremap <buffer> {leader}{item.key} {item.plug}'
         endif
     endif
 
@@ -79,10 +80,10 @@ for item in todo_items
     # 2. Map to <Plug> if not already mapped
     if !hasmapto(item.plug)
         if empty(mapcheck($'<leader>{item.key}', 'n', 1))
-            execute $'nnoremap <buffer> <localleader>{item.key} {item.plug}'
+            execute $'nnoremap <buffer> {leader}{item.key} {item.plug}'
         endif
         if empty(mapcheck($'<leader>{item.key}', 'x', 1))
-            execute $'xnoremap <buffer> <localleader>{item.key} {item.plug}'
+            execute $'xnoremap <buffer> {leader}{item.key} {item.plug}'
         endif
     endif
 
@@ -95,18 +96,18 @@ endfor
 
 # Code Blocks ------------------------------------------------------------{{{1
 # Smart toggling for fenced code blocks. Supports normal and visual mode.
-var codeblock_item = {plug: '<Plug>MarkdownCodeBlockToggle', key: 'cb'}
+var codeblock_item = {plug: '<Plug>MarkdownCodeBlockToggle', key: 'bk'}
 
 # 1. Define command interface. -range handles both normal and visual mode ranges.
 command! -range ToggleCodeBlock call code.ToggleCodeBlock(<line1>, <line2>)
 
 # 2. Map to <Plug> if not already mapped
 if !hasmapto(codeblock_item.plug)
-    if empty(mapcheck($'<localleader>{codeblock_item.key}', 'n', 1))
-        execute $'nnoremap <buffer> <localleader>{codeblock_item.key} {codeblock_item.plug}'
+    if empty(mapcheck($'{leader}{codeblock_item.key}', 'n', 1))
+        execute $'nnoremap <buffer> {leader}{codeblock_item.key} {codeblock_item.plug}'
     endif
-    if empty(mapcheck($'<localleader>{codeblock_item.key}', 'x', 1))
-        execute $'xnoremap <buffer> <localleader>{codeblock_item.key} {codeblock_item.plug}'
+    if empty(mapcheck($'{leader}{codeblock_item.key}', 'x', 1))
+        execute $'xnoremap <buffer> {leader}{codeblock_item.key} {codeblock_item.plug}'
     endif
 endif
 
