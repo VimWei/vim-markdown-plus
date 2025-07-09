@@ -25,49 +25,6 @@ export def ToggleSurround(style: string, type: string = '')
 enddef
 
 # Surround ---------------------------------------------------------------{{{1
-# SurroundSimple ---------------------------------------------------------{{{2
-# Multibyte support: All line/column positions are 1-based character indices
-# Input: lA, cA, lB, cB (1-based, character)
-# Output: setline 操作均基于字符索引
-export def SurroundSimple(style: string, type: string = '')
-
-    # if getcharpos("'[") == getcharpos("']")
-    #   return
-    # endif
-
-    var open_delim = constants.TEXT_STYLES_DICT[style].open_delim
-    var close_delim = constants.TEXT_STYLES_DICT[style].close_delim
-
-    # line and column of point A
-    var lA = line("'[")
-    var cA = charcol("'[")
-
-    # line and column of point B
-    var lB = line("']")
-    var cB = charcol("']")
-
-    var toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
-    var fromB = close_delim .. strcharpart(getline(lB), cB)
-
-    # If on the same line
-    if lA == lB
-        # Overwrite everything that is in the middle
-        var A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
-        setline(lA, toA .. A_to_B .. fromB)
-    else
-        var lineA = toA .. strcharpart(getline(lA), cA - 1)
-        setline(lA, lineA)
-        var lineB = strcharpart(getline(lB), 0, cB - 1) .. fromB
-        setline(lB, lineB)
-        var ii = 1
-        # Fix intermediate lines
-        while lA + ii < lB
-            setline(lA + ii, getline(lA + ii))
-            ii += 1
-        endwhile
-    endif
-enddef
-
 # SurroundSmart ----------------------------------------------------------{{{2
 # Multibyte support: All line/column positions are 1-based character indices
 # Input: lA, cA, lB, cB (1-based, character)
