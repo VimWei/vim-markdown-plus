@@ -171,7 +171,7 @@ def Create_image_link(type: string)
         call deletebufline('%', start_line_num + 1, end_line_num)
     endif
 
-    # --- Place cursor inside the parentheses ---
-    var new_cursor_col = strchars(before .. new_image_link) - 1
-    setpos('.', [0, start_line_num, new_cursor_col, 0])
+    # --- Place cursor inside the parentheses (multibyte safe) ---
+    var paren_pos = strchars(before .. printf('![%s](', text_to_link)) + 1
+    setcursorcharpos([start_line_num, paren_pos])
 enddef
