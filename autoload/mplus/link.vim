@@ -4,8 +4,8 @@ import autoload './utils.vim' as utils
 
 # Unified function for toggling links ------------------------------------{{{1
 export def ToggleLink(link_type: string, type: string)
-    # --- Dependency check: require wiki#link#get_all_from_range ---
-    if !exists('*wiki#link#remove')
+    # --- Dependency check ---
+    if !exists('g:wiki_loaded')
         utils.Echowarn("Missing dependency: lervag/wiki.vim")
         return
     endif
