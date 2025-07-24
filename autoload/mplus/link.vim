@@ -77,6 +77,8 @@ export def ToggleLink(link_type: string, type: string)
         else
             if link_type == 'wiki'
                 Create_wiki_link(type)
+            elseif link_type == 'file'
+                Create_file_link(type)
             elseif link_type == 'image'
                 Create_image_link(type)
             else
@@ -98,6 +100,82 @@ def Create_wiki_link(type: string)
     else
         wiki#link#transform_operator(type)
     endif
+enddef
+
+# Create a file link -----------------------------------------------------{{{1
+def Create_file_link(type: string)
+    # --- Get selection positions and lines ---
+    var sel_start = getpos("'[")
+    var sel_end = getpos("']")
+    var start_line_num = sel_start[1]
+    var end_line_num = sel_end[1]
+    var lines = getline(start_line_num, end_line_num)
+
+    # --- Convert byte column to character column ---
+    var start_col_char = charidx(lines[0], sel_start[2] - 1) + 1
+    var end_col_char = charidx(lines[-1], sel_end[2] - 1) + 1
+
+    # --- Prepare prefix and suffix for replacement ---
+    var before = strcharpart(lines[0], 0, start_col_char - 1)
+    var after = strcharpart(lines[-1], end_col_char)
+
+    # --- Build the selected text for the image link ---
+    var selected = ''
+    var cjk_regex = '[一-龥ぁ-ゔァ-ヴー々〆〤가-힣]'
+    if len(lines) == 1
+        # Single line selection
+        var line_len = strchars(lines[0])
+        var safe_start = min([start_col_char - 1, line_len])
+        var safe_len = min([end_col_char - start_col_char + 1, line_len - safe_start])
+        selected = strcharpart(lines[0], safe_start, safe_len)
+    else
+        # Multi-line selection
+        # 1. First line: only the selected part
+        var first_line_len = strchars(lines[0])
+        var safe_start = min([start_col_char - 1, first_line_len])
+        selected = strcharpart(lines[0], safe_start)
+        # 2. Middle lines: join with smart spacing
+        if len(lines) > 2
+            for lnum in range(1, len(lines) - 1)
+                var prev_last = matchstr(selected, '.$')
+                var curr_first = matchstr(lines[lnum], '^.')
+                if prev_last =~# cjk_regex && curr_first =~# cjk_regex
+                    selected ..= lines[lnum]
+                else
+                    selected ..= ' ' .. lines[lnum]
+                endif
+            endfor
+        endif
+        # 3. Last line: only the selected part, join with smart spacing
+        var last_line_len = strchars(lines[-1])
+        var safe_end_col_char = min([end_col_char, last_line_len])
+        var last_part = strcharpart(lines[-1], 0, safe_end_col_char)
+        var prev_last = matchstr(selected, '.$')
+        var curr_first = matchstr(last_part, '^.')
+        if prev_last =~# cjk_regex && curr_first =~# cjk_regex
+            selected ..= last_part
+        else
+            selected ..= ' ' .. last_part
+        endif
+    endif
+    # Remove NUL characters (safety)
+    selected = substitute(selected, '\%x00', '', 'g')
+    var text_to_link = selected
+
+    # --- Build and insert the new file link ---
+    if empty(text_to_link)
+        return
+    endif
+    var new_file_link = printf('[%s](file:%s)', text_to_link, text_to_link)
+    var new_line = before .. new_file_link .. after
+    setline(start_line_num, new_line)
+    if end_line_num > start_line_num
+        call deletebufline('%', start_line_num + 1, end_line_num)
+    endif
+
+    # --- Place cursor inside the parentheses (multibyte safe) ---
+    var paren_pos = strchars(before .. printf('[%s](', text_to_link)) + 1
+    setcursorcharpos([start_line_num, paren_pos])
 enddef
 
 # Create an image link ---------------------------------------------------{{{1

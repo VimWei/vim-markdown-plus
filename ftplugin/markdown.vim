@@ -41,6 +41,7 @@ endfor
 # Supports text objects and visual mode.
 var link_items = [
     {plug: '<Plug>WikiLinkToggle',  key: 'l', link_type: 'wiki'},
+    {plug: '<Plug>FileLinkToggle',  key: 'f', link_type: 'file'},    
     {plug: '<Plug>MarkdownImgLinkToggle',  key: 'p', link_type: 'image'},
 ]
 
