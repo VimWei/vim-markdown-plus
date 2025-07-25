@@ -161,6 +161,17 @@ def Get_selected_text_and_context(): dict<any>
     # Remove NUL characters (safety)
     selected = substitute(selected, '\%x00', '', 'g')
 
+    # --- Generate filename using wiki.vim's url_transform mechanism ---
+    var creator = call('wiki#link#get_creator', [])
+    var filename = selected
+    if has_key(creator, 'url_transform')
+        try
+            filename = call(creator.url_transform, [selected])
+        catch
+            call wiki#log#warn('There was a problem with the url transformer!')
+        endtry
+    endif
+
     return {
         before: before,
         selected: selected,
@@ -168,6 +179,7 @@ def Get_selected_text_and_context(): dict<any>
         start_line_num: start_line_num,
         end_line_num: end_line_num,
         lines: lines,
+        filename: filename,
     }
 enddef
 
@@ -195,7 +207,7 @@ def Create_file_link(type: string)
         return
     endif
 
-    var new_link = printf('[%s](file:%s)', ctx.selected, ctx.selected)
+    var new_link = printf('[%s](file:%s)', ctx.selected, ctx.filename)
     var cursor_offset = strchars(printf('[%s](', ctx.selected)) + 1
     Replace_selection_with_link(new_link, ctx.before, ctx.after,
                                ctx.start_line_num, ctx.end_line_num, cursor_offset)
@@ -208,7 +220,7 @@ def Create_image_link(type: string)
         return
     endif
 
-    var new_link = printf('![%s](%s)', ctx.selected, ctx.selected)
+    var new_link = printf('![%s](%s)', ctx.selected, ctx.filename)
     var cursor_offset = strchars(printf('![%s](', ctx.selected)) + 1
     Replace_selection_with_link(new_link, ctx.before, ctx.after,
                                ctx.start_line_num, ctx.end_line_num, cursor_offset)
