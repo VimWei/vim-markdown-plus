@@ -57,8 +57,8 @@ rule that is defined in the original syntax file.
 ======================================================================
 3. MAPPINGS                                    *markdown-plus-mappings*
 
-Note: `<localleader>` is determined by `g:markdown_leader` (if set), 
-otherwise falls back to `g:maplocalleader`. 
+Note: `<localleader>` is determined by `g:markdown_leader` (if set),
+otherwise falls back to `g:maplocalleader`.
 
 You can customize it, e.g.:
     let g:markdown_leader = '<leader>m'
@@ -106,16 +106,19 @@ Visual and Operator-pending modes. When used, they will either add the
 specified link formatting or remove it if it's already present.
 
 Visual mappings for the selection:
-- `<localleader>l`: Toggle wiki-style link
+- `<localleader>l`: Toggle wiki-style (markdown URL) link
 - `<localleader>p`: Toggle image link
+- `<localleader>f`: Toggle file link
 
 Operator-pending mappings for any text object or motion:
 - `<localleader>l` + {motion}: Toggle wiki-style link
 - `<localleader>p` + {motion}: Toggle image link
+- `<localleader>f` + {motion}: Toggle file link
 
 Plug mappings (for custom key bindings):
 - `<Plug>WikiLinkToggle`: Toggle wiki-style link
-- `<Plug>MarkdownImgLinkToggle`: Toggle image link
+- `<Plug>ImageLinkToggle`: Toggle image link
+- `<Plug>FileLinkToggle`: Toggle file link
 
 These Plug mappings can be remapped to different keys if needed. For example:
 >
