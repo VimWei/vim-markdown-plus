@@ -11,6 +11,7 @@ This plugin complements [vim-markdown](https://github.com/tpope/vim-markdown) an
 - Smart toggling Todo checkbox markers to reflect task status
 - Smart toggling Code Block and Quote Block
 - Smart toggling gq format
+- Smart list symbol conversion and deletion
 - Syntax: Conceal markdown link and fix todo list checkbox
 
 ## Installation

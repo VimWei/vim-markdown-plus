@@ -5,6 +5,7 @@ import autoload 'mplus/link.vim' as link
 import autoload 'mplus/todo.vim' as todo
 import autoload 'mplus/code.vim' as code
 import autoload 'mplus/quote.vim' as quote
+import autoload 'mplus/list.vim' as list
 
 # localleader ------------------------------------------------------------{{{1
 var leader = get(g:, 'markdown_leader', '<localleader>')
@@ -143,6 +144,43 @@ if empty(maparg(quoteblock_item.plug))
 endif
 
 # List Formatting --------------------------------------------------------{{{1
+# Convert normal lines to list lines; change list symbols for list lines
+
+# Smart toggling for list symbol conversion and formatting.
+# Supports normal and visual mode.
+
+# 1. Define command interface. -range handles both normal and visual mode ranges.
+command! -range -nargs=1 ListSymbol call list.ChangeSymbol(<q-args>, <line2> - <line1> + 1)
+
+var listsymbol_items = [
+    {plug: '<Plug>MarkdownListStar',        key: 'gl*', symbol: '*'},
+    {plug: '<Plug>MarkdownListDash',        key: 'gl-', symbol: '-'},
+    {plug: '<Plug>MarkdownListPlus',        key: 'gl+', symbol: '+'},
+    {plug: '<Plug>MarkdownListNumber',      key: 'gl1', symbol: '1.'},
+    {plug: '<Plug>MarkdownListNumberParen', key: 'gl2', symbol: '1)'},
+    {plug: '<Plug>MarkdownListUpperAlpha',  key: 'glA', symbol: 'A.'},
+    {plug: '<Plug>MarkdownListLowerAlpha',  key: 'gla', symbol: 'a)'},
+    {plug: '<Plug>MarkdownListDelete',      key: 'gld', symbol: 'd'},
+]
+
+for item in listsymbol_items
+    # 2. Map to <Plug> if not already mapped
+    if !hasmapto(item.plug)
+        if empty(mapcheck(item.key, 'n', 1))
+            execute $'nnoremap <buffer> {item.key} {item.plug}'
+        endif
+        if empty(mapcheck(item.key, 'x', 1))
+            execute $'xnoremap <buffer> {item.key} {item.plug}'
+        endif
+    endif
+
+    # 3. <Plug> implementation
+    if empty(maparg(item.plug))
+        execute $'nnoremap <script> <buffer> {item.plug} :ListSymbol {item.symbol}<CR>'
+        execute $'xnoremap <script> <buffer> {item.plug} :ListSymbol {item.symbol}<CR>'
+    endif
+endfor
+
 # Restore original markdown list formatting after gq.
 # Supports file or visual selection.
 command! -range=% UngqFormat call mplus#gqformat#UngqFormat(<line1>, <line2>)

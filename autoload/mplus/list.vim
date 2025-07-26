@@ -23,6 +23,45 @@ export def GetListPattern(): string
     return list_pattern
 enddef
 
+# ChangeSymbol() ---------------------------------------------------------{{{1
+# Convert normal lines to list lines; change list symbols for list lines
+# Supports the following list formats:
+# - Hyphenated lists
+# * Star (or bullet) lists
+# + Plus (also bullet) lists
+# 1. Numeric lists
+# 2) or this style of numeric lists
+# A. alphabetic lists
+# a) or this style of alphabetic
+
+export def ChangeSymbol(new_symbol: string, count: number = 1): void
+    var start_line = line('.')
+    var end_line = start_line + count - 1
+
+    for lnum in range(start_line, end_line)
+        var line = getline(lnum)
+        var indent = line->matchstr('^\s*')
+
+        if line =~# '^\s*\(\([-*+]\|\d\+[.)]\|[a-zA-Z][.)]\)\s\+\)'
+            if new_symbol == 'd'
+                # If it's a list item, remove the list symbol and following spaces
+                line = indent .. line->substitute('^\s*\([-*+]\|\d\+[.)]\|[a-zA-Z][.)]\)\s\+', '', '')
+            else
+                # If it's a list item, replace the list symbol and keep one space
+                line = line->substitute('^\s*\zs\([-*+]\|\d\+[.)]\|[a-zA-Z][.)]\)\ze\s\+', '', '')
+                line = indent .. new_symbol .. ' ' .. line->matchstr('\S.*$')
+            endif
+        else
+            if new_symbol != 'd'
+                # If it's not a list item, add the new list symbol before the text, after spaces
+                var content = line->matchstr('\S.*$')
+                line = indent .. new_symbol .. ' ' .. content
+            endif
+        endif
+        setline(lnum, line)
+    endfor
+enddef
+
 export def CR_Hacked() # -------------------------------------------------{{{1
   # Needed for hacking <CR> when you are writing a list
   #
