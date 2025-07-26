@@ -201,9 +201,10 @@ Normal/Visual mode mappings:
 - `gl-`   : Convert to dash list (`-`)
 - `gl+`   : Convert to plus list (`+`)
 - `gl1`   : Convert to numbered list (`1.`)
-- `gl2`   : Convert to numbered list with parenthesis (`1)`)
+- `gla`   : Convert to lower alpha list (`a.`)
 - `glA`   : Convert to upper alpha list (`A.`)
-- `gla`   : Convert to lower alpha list (`a)`)
+- `gli`   : Convert to lower roman list (`i.`)
+- `glI`   : Convert to upper roman list (`I.`)
 - `gld`   : Remove list symbol (delete)
 
 Plug mappings (for custom key bindings):
@@ -211,9 +212,10 @@ Plug mappings (for custom key bindings):
 - `<Plug>MarkdownListDash`        : Convert to dash list
 - `<Plug>MarkdownListPlus`        : Convert to plus list
 - `<Plug>MarkdownListNumber`      : Convert to numbered list
-- `<Plug>MarkdownListNumberParen` : Convert to numbered list with parenthesis
-- `<Plug>MarkdownListUpperAlpha`  : Convert to upper alpha list
 - `<Plug>MarkdownListLowerAlpha`  : Convert to lower alpha list
+- `<Plug>MarkdownListUpperAlpha`  : Convert to upper alpha list
+- `<Plug>MarkdownListLowerRome`   : Convert to lower roman list
+- `<Plug>MarkdownListUpperRome`   : Convert to upper roman list
 - `<Plug>MarkdownListDelete`      : Remove list symbol
 
 These `<Plug>` mappings can be remapped to different keys if needed. For example:

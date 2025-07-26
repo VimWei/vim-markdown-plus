@@ -152,18 +152,19 @@ endif
 # 1. Define command interface. -range handles both normal and visual mode ranges.
 command! -range -nargs=1 ListSymbol call list.ChangeSymbol(<q-args>, <line2> - <line1> + 1)
 
-var listsymbol_items = [
+var list_symbol_items = [
     {plug: '<Plug>MarkdownListStar',        key: 'gl*', symbol: '*'},
     {plug: '<Plug>MarkdownListDash',        key: 'gl-', symbol: '-'},
     {plug: '<Plug>MarkdownListPlus',        key: 'gl+', symbol: '+'},
     {plug: '<Plug>MarkdownListNumber',      key: 'gl1', symbol: '1.'},
-    {plug: '<Plug>MarkdownListNumberParen', key: 'gl2', symbol: '1)'},
+    {plug: '<Plug>MarkdownListLowerAlpha',  key: 'gla', symbol: 'a.'},
     {plug: '<Plug>MarkdownListUpperAlpha',  key: 'glA', symbol: 'A.'},
-    {plug: '<Plug>MarkdownListLowerAlpha',  key: 'gla', symbol: 'a)'},
+    {plug: '<Plug>MarkdownListLowerRome',  key: 'gli', symbol: 'i.'},
+    {plug: '<Plug>MarkdownListUpperRome',  key: 'glI', symbol: 'I.'},
     {plug: '<Plug>MarkdownListDelete',      key: 'gld', symbol: 'd'},
 ]
 
-for item in listsymbol_items
+for item in list_symbol_items
     # 2. Map to <Plug> if not already mapped
     if !hasmapto(item.plug)
         if empty(mapcheck(item.key, 'n', 1))

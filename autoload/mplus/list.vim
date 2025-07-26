@@ -42,13 +42,14 @@ export def ChangeSymbol(new_symbol: string, count: number = 1): void
         var line = getline(lnum)
         var indent = line->matchstr('^\s*')
 
-        if line =~# '^\s*\(\([-*+]\|\d\+[.)]\|[a-zA-Z][.)]\)\s\+\)'
+        # Updated regex to handle multi-letter roman numerals and other list patterns
+        if line =~# '^\s*\(\([-*+]\|\d\+[.)]\|[a-zA-Z]\+[.)]\)\s\+\)'
             if new_symbol == 'd'
                 # If it's a list item, remove the list symbol and following spaces
-                line = indent .. line->substitute('^\s*\([-*+]\|\d\+[.)]\|[a-zA-Z][.)]\)\s\+', '', '')
+                line = indent .. line->substitute('^\s*\([-*+]\|\d\+[.)]\|[a-zA-Z]\+[.)]\)\s\+', '', '')
             else
                 # If it's a list item, replace the list symbol and keep one space
-                line = line->substitute('^\s*\zs\([-*+]\|\d\+[.)]\|[a-zA-Z][.)]\)\ze\s\+', '', '')
+                line = line->substitute('^\s*\zs\([-*+]\|\d\+[.)]\|[a-zA-Z]\+[.)]\)\ze\s\+', '', '')
                 line = indent .. new_symbol .. ' ' .. line->matchstr('\S.*$')
             endif
         else
