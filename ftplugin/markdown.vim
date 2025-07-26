@@ -97,7 +97,7 @@ endfor
 
 # Code Blocks ------------------------------------------------------------{{{1
 # Smart toggling for fenced code blocks. Supports normal and visual mode.
-var codeblock_item = {plug: '<Plug>MarkdownCodeBlockToggle', key: 'bk'}
+var codeblock_item = {plug: '<Plug>MarkdownCodeBlockToggle', key: 'k'}
 
 # 1. Define command interface. -range handles both normal and visual mode ranges.
 command! -range ToggleCodeBlock call code.ToggleCodeBlock(<line1>, <line2>)

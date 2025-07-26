@@ -27,7 +27,7 @@ export def ToggleCodeBlock(firstline: number, lastline: number)
 enddef
 
 # SetBlock ---------------------------------------------------------------{{{1
-export def SetBlock(firstline: number, lastline: number, type: string = '')
+export def SetBlock(firstline: number, lastline: number)
   const open_block = constants.CODEBLOCK_OPEN_DICT
   const close_block = constants.CODEBLOCK_CLOSE_DICT
 
