@@ -1,9 +1,10 @@
 vim9script
 
-import autoload 'mplus/code.vim' as code
-import autoload 'mplus/todo.vim' as todo
 import autoload 'mplus/text.vim' as text
 import autoload 'mplus/link.vim' as link
+import autoload 'mplus/todo.vim' as todo
+import autoload 'mplus/code.vim' as code
+import autoload 'mplus/quote.vim' as quote
 
 # localleader ------------------------------------------------------------{{{1
 var leader = get(g:, 'markdown_leader', '<localleader>')
@@ -116,6 +117,29 @@ endif
 if empty(maparg(codeblock_item.plug))
     execute $'nnoremap <script> <buffer> {codeblock_item.plug} :ToggleCodeBlock<CR>'
     execute $'xnoremap <script> <buffer> {codeblock_item.plug} :ToggleCodeBlock<CR>'
+endif
+
+# Quote Blocks -----------------------------------------------------------{{{1
+# Smart toggling for Quote blocks. Supports normal and visual mode.
+var quoteblock_item = {plug: '<Plug>MarkdownQuoteBlockToggle', key: 'q'}
+
+# 1. Define command interface. -range handles both normal and visual mode ranges.
+command! -range ToggleQuoteBlock call quote.ToggleQuoteBlock(<line1>, <line2>)
+
+# 2. Map to <Plug> if not already mapped
+if !hasmapto(quoteblock_item.plug)
+    if empty(mapcheck($'{leader}{quoteblock_item.key}', 'n', 1))
+        execute $'nnoremap <buffer> {leader}{quoteblock_item.key} {quoteblock_item.plug}'
+    endif
+    if empty(mapcheck($'{leader}{quoteblock_item.key}', 'x', 1))
+        execute $'xnoremap <buffer> {leader}{quoteblock_item.key} {quoteblock_item.plug}'
+    endif
+endif
+
+# 3. <Plug> implementation
+if empty(maparg(quoteblock_item.plug))
+    execute $'nnoremap <script> <buffer> {quoteblock_item.plug} :ToggleQuoteBlock<CR>'
+    execute $'xnoremap <script> <buffer> {quoteblock_item.plug} :ToggleQuoteBlock<CR>'
 endif
 
 # List Formatting --------------------------------------------------------{{{1
