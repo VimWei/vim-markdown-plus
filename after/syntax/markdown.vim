@@ -31,3 +31,11 @@ execute('syn match markdownTodoDone "[' .. checkbox_chars .. ']" containedin=mar
 # Optional: highlight style (comment out to use theme default)
 hi def link markdownTodo         markdownListMarker
 hi def link markdownTodoDone     markdownBold
+
+# Override markdownError syntax rule -------------------------------------{{{1
+# Remove only the underscore-related error detection while keeping other error checks
+# The default rule "syn match markdownError "\w\@<=_\w\@="" matches underscores between word chars
+# We'll clear it and redefine markdownError without the underscore pattern
+syntax clear markdownError
+# Redefine markdownError without the underscore pattern - add other error patterns here if needed
+# syntax match markdownError "your_other_error_pattern_here"
