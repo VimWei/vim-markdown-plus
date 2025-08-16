@@ -11,6 +11,7 @@ CONTENTS                                     *markdown-plus-contents*
 2. Mardown after syntax...............|mardown-plus-after-syntax|
    2.1 Conceal markdown link..........|mardown-plus-conceal-link|
    2.2 fix checkbox before link.......|mardown-plus-fix-checkbox|
+   2.3 Disable underscore error.......|mardown-plus-disable-underscore-error|
 3. Mappings...........................|markdown-plus-mappings|
    3.1 Text Formatting................|markdown-plus-text-formatting|
    3.2 Link Management................|markdown-plus-link-management|
@@ -56,6 +57,15 @@ No extra configuration is needed.
 By defining a specific, higher-priority match for checkboxes, we ensure they
 are not misidentified as part of a link by the more general markdownLinkText
 rule that is defined in the original syntax file.
+
+----------------------------------------------------------------------
+2.3 Disable underscore error         *mardown-plus-disable-underscore-error*
+
+This plugin disables the default `markdownError` syntax rule that flags
+underscores between word characters (e.g., `file_name`). This prevents
+false positives and improves syntax highlighting for text where
+underscores are used in valid contexts, such as filenames, URLs, or
+code identifiers.
 
 ======================================================================
 3. MAPPINGS                                    *markdown-plus-mappings*
