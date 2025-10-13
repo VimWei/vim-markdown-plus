@@ -31,8 +31,10 @@ export def SetBlock(firstline: number, lastline: number)
   const open_block = constants.CODEBLOCK_OPEN_DICT
   const close_block = constants.CODEBLOCK_CLOSE_DICT
 
+  var label = input('Enter code-block language: ')
+
   var lines = []
-  add(lines, $'{keys(open_block)[0]}')
+  add(lines, $'{keys(open_block)[0]}{label}')
   for lnum in range(firstline, lastline)
     # add(lines, '  ' .. getline(lnum)->substitute('^\\s*', '', ''))
     add(lines, getline(lnum))

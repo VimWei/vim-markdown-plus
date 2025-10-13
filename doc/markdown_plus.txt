@@ -12,6 +12,7 @@ CONTENTS                                     *markdown-plus-contents*
    2.1 Conceal markdown link..........|mardown-plus-conceal-link|
    2.2 fix checkbox before link.......|mardown-plus-fix-checkbox|
    2.3 Disable underscore error.......|mardown-plus-disable-underscore-error|
+   2.4 Git command highlighting.......|mardown-plus-git-highlight|
 3. Mappings...........................|markdown-plus-mappings|
    3.1 Text Formatting................|markdown-plus-text-formatting|
    3.2 Link Management................|markdown-plus-link-management|
@@ -66,6 +67,22 @@ underscores between word characters (e.g., `file_name`). This prevents
 false positives and improves syntax highlighting for text where
 underscores are used in valid contexts, such as filenames, URLs, or
 code identifiers.
+
+----------------------------------------------------------------------
+2.4 Git command highlighting in shell scripts    *mardown-plus-git-highlight*
+
+This plugin includes an after/syntax/sh.vim patch that provides enhanced
+syntax highlighting for Git commands in bash/shell scripts. It highlights:
+
+- `git` command itself
+- Common Git subcommands like `commit`, `push`, `pull`, `status`, `add`,
+  `clone`, `checkout`, `merge`, `rebase`, `log`, `diff`, `branch`, `tag`,
+  `stash`, `fetch`, `remote`, `reset`, `init`, `rm`, `mv`, `show`, `blame`,
+  `cherry-pick`, `revert`, `bisect`, `describe`, `config`, `submodule`
+
+This enhancement improves readability when working with shell scripts that
+contain Git commands, making it easier to distinguish between different
+types of Git operations.
 
 ======================================================================
 3. MAPPINGS                                    *markdown-plus-mappings*
@@ -182,6 +199,10 @@ This Plug mapping can be remapped to different keys if needed. For example:
     nmap <leader>cb <Plug>MarkdownCodeBlockToggle
     xmap <leader>cb <Plug>MarkdownCodeBlockToggle
 <
+
+When creating a new code block, the plugin will prompt you to enter the
+programming language type.
+
 ----------------------------------------------------------------------
 3.5 Quote Blocks                            *markdown-plus-quote-blocks*
 
@@ -266,7 +287,8 @@ These commands provide range-based todo list management:
 
 :ToggleCodeBlock [range]
     Toggle code block formatting for the given line range.
-    If lines are not in a code block, wraps them in one.
+    If lines are not in a code block, wraps them in one and prompts for
+    language type.
     If lines are already in a code block, removes the block formatting.
 
 ----------------------------------------------------------------------

@@ -38,11 +38,11 @@ For **detailed usage, all mappings, and advanced features**, please see the in-p
 
 ## Acknowledgements
 
-* lervag/wiki.vim:
+* lervag/wiki.vim
 
 The Link Management features in this project directly call several functions from wiki.vim. Additionally, many ideas and technical solutions were inspired by discussions with Lervåg regarding specific implementation details.
 
-* ubaldot/vim-markdown-extras:
+* ubaldot/vim-markdown-extras
 
 The Text Formatting features in this project utilize selected functions from vim-markdown-extras. This project includes components licensed under the BSD 3-Clause License, © 2025 Ubaldo Tiberi. See LICENSE.bsd for details.
 
