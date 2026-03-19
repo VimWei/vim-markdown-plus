@@ -6,7 +6,7 @@ This plugin complements [vim-markdown](https://github.com/tpope/vim-markdown) an
 
 ## Features
 - Work alongside tpope/vim-markdown and lervag/wiki.vim
-- Smart toggling Bold, Italic, Strike and inline Code
+- Smart toggling Bold, Italic, Strike, Mark and inline Code
 - Smart toggling markdown URL Link, Image Link and custom File Link
 - Smart toggling Todo checkbox markers to reflect task status
 - Smart toggling Code Block and Quote Block
