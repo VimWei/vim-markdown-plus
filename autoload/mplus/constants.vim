@@ -27,6 +27,9 @@ const BOLD_U_CLOSE_REGEX = '\v\S((\\|_)@<!|(\\_))@<=__(_)@!|^$'
 
 const STRIKE_OPEN_REGEX = '\v((\\|\~)@<!|(\\\~))@<=\~\~(\~)@!\S'
 const STRIKE_CLOSE_REGEX = '\v\S((\\|\~)@<!|(\\\~))@<=\~\~(\~)@!|^$'
+
+const MARK_OPEN_REGEX = '\v((\\|\=)@<!|(\\\=))@<=\=\=(\=)@!\S'
+const MARK_CLOSE_REGEX = '\v\S((\\|\=)@<!|(\\\=))@<=\=\=(\=)@!|^$'
 # TODO: CODEBLOCK REGEX COULD BE IMPROVED
 const CODEBLOCK_OPEN_REGEX = '^```'
 const CODEBLOCK_CLOSE_REGEX = '^```$'
@@ -83,6 +86,9 @@ export const TEXT_STYLES_DICT = {
   markdownStrike: { open_delim: '~~', close_delim: '~~',
   open_regex: STRIKE_OPEN_REGEX, close_regex: STRIKE_CLOSE_REGEX },
 
+  markdownMark: { open_delim: '==', close_delim: '==',
+  open_regex: MARK_OPEN_REGEX, close_regex: MARK_CLOSE_REGEX },
+
   markdownLinkText: { open_delim: '[', close_delim: ']',
   open_regex: LINK_OPEN_REGEX, close_regex: LINK_CLOSE_REGEX },
 
@@ -116,6 +122,10 @@ export const STRIKE_OPEN_DICT = {[TEXT_STYLES_DICT.markdownStrike.open_delim]:
   TEXT_STYLES_DICT.markdownStrike.open_regex}
 export const STRIKE_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownStrike.close_delim]:
   TEXT_STYLES_DICT.markdownStrike.close_regex}
+export const MARK_OPEN_DICT = {[TEXT_STYLES_DICT.markdownMark.open_delim]:
+  TEXT_STYLES_DICT.markdownMark.open_regex}
+export const MARK_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownMark.close_delim]:
+  TEXT_STYLES_DICT.markdownMark.close_regex}
 export const LINK_OPEN_DICT = {[TEXT_STYLES_DICT.markdownLinkText.open_delim]:
   TEXT_STYLES_DICT.markdownLinkText.open_regex}
 export const LINK_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownLinkText.close_delim]:
