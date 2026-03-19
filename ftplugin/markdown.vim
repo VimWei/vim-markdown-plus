@@ -17,6 +17,7 @@ var styles = [
     {plug: '<Plug>MarkdownBold',        key: 'b', style: 'markdownBold'},
     {plug: '<Plug>MarkdownItalic',      key: 'i', style: 'markdownItalic'},
     {plug: '<Plug>MarkdownStrike',      key: 's', style: 'markdownStrike'},
+    {plug: '<Plug>MarkdownMark',        key: 'h', style: 'markdownMark'},
     {plug: '<Plug>MarkdownInlineCode',  key: 'c', style: 'markdownCode'},
     {plug: '<Plug>MarkdownRemoveAll',   key: 'd', style: 'markdownRemoveAll'},
 ]
