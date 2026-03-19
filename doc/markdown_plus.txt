@@ -105,6 +105,7 @@ Visual mappings for the selection:
 - `<localleader>b`: Toggle bold
 - `<localleader>i`: Toggle italic
 - `<localleader>s`: Toggle strikethrough
+- `<localleader>h`: Toggle mark
 - `<localleader>c`: Toggle inline code
 - `<localleader>d`: Remove all text style
 
@@ -119,6 +120,7 @@ Plug mappings (for custom key bindings):
 - `<Plug>MarkdownBold`: Toggle bold formatting
 - `<Plug>MarkdownItalic`: Toggle italic formatting
 - `<Plug>MarkdownStrike`: Toggle strikethrough formatting
+- `<Plug>MarkdownMark`: Toggle mark formatting
 - `<Plug>MarkdownInlineCode`: Toggle inline code formatting
 - `<Plug>MarkdownRemoveAll`: Remove all text style
 
