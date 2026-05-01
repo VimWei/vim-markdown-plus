@@ -64,6 +64,20 @@ for item in link_items
     endif
 endfor
 
+# Remove link text only, keep URL
+var remove_text_item = {plug: '<Plug>MarkdownRemoveTextOnly', key: 'L'}
+if !hasmapto(remove_text_item.plug)
+    if empty(mapcheck($'{leader}{remove_text_item.key}', 'n', 1))
+        execute $'nnoremap <buffer> {leader}{remove_text_item.key} {remove_text_item.plug}'
+    endif
+    if empty(mapcheck($'{leader}{remove_text_item.key}', 'x', 1))
+        execute $'xnoremap <buffer> {leader}{remove_text_item.key} {remove_text_item.plug}'
+    endif
+endif
+if empty(maparg(remove_text_item.plug))
+    execute $'noremap <script> <buffer> {remove_text_item.plug} <ScriptCmd>&l:opfunc = function(link.RemoveTextOnly)<cr>g@'
+endif
+
 # Todo -------------------------------------------------------------------{{{1
 # Smart toggling for todo status (checkbox, done, suspend, maturity).
 # Generates commands and mappings dynamically.

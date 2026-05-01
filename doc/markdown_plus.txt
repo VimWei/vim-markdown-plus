@@ -156,6 +156,16 @@ These Plug mappings can be remapped to different keys if needed. For example:
     xmap <leader>l <Plug>WikiLinkToggle
 <
 
+Additional link operations:
+- `<localleader>L`: Remove link text, keep URL only (e.g., [A](B) → B)
+- `<localleader>l`: Remove link, keep text only (e.g., [A](B) → A)
+
+Normal mode: Place cursor on a link and press the key to operate.
+Visual mode: Select a range and press the key to operate on all links in range.
+
+Plug mapping (for custom key bindings):
+- `<Plug>MarkdownRemoveTextOnly`: Remove link text, keep URL only (e.g., [A](B) → B)
+
 ----------------------------------------------------------------------
 3.3 Todo Status                            *markdown-plus-todo-status*
 

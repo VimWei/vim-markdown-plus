@@ -225,3 +225,61 @@ def Create_image_link(type: string)
     Replace_selection_with_link(new_link, ctx.before, ctx.after,
                                ctx.start_line_num, ctx.end_line_num, cursor_offset)
 enddef
+
+# Remove link text, keep URL only -----------------------------------------{{{1
+export def RemoveTextOnly(type: string)
+    if !exists('g:wiki_loaded')
+        utils.Echowarn("Missing dependency: lervag/wiki.vim")
+        return
+    endif
+
+    var sel_start_pos = getpos("'[")
+    var sel_end_pos = getpos("']")
+    var is_linewise = type == 'line' || type == 'V'
+
+    var start_line = sel_start_pos[1]
+    var end_line = sel_end_pos[1]
+
+    var links = wiki#link#get_all_from_range(start_line, end_line)
+    for link in links
+        var link_line = link.pos_start[0]
+        var start_col = link.pos_start[1]
+        var end_col = link.pos_end[1]
+        var text = link.text
+        var url = link.url
+
+        if !empty(text) && !empty(url)
+            var is_in_selection = false
+            if is_linewise
+                is_in_selection = true
+            else
+                var ssl = sel_start_pos[1]
+                var ssc = sel_start_pos[2]
+                var sel = sel_end_pos[1]
+                var sec = sel_end_pos[2]
+                if link_line > ssl && link_line < sel
+                    is_in_selection = true
+                elseif link_line == ssl && link_line < sel
+                    if end_col > ssc
+                        is_in_selection = true
+                    endif
+                elseif link_line > ssl && link_line == sel
+                    if start_col < sec
+                        is_in_selection = true
+                    endif
+                elseif link_line == ssl && link_line == sel
+                    if max([start_col, ssc]) < min([end_col + 1, sec])
+                        is_in_selection = true
+                    endif
+                endif
+            endif
+
+            if is_in_selection
+                var cur_line = getline(link_line)
+                var before = cur_line->strpart(0, start_col - 1)
+                var after = cur_line->strpart(end_col)
+                setline(link_line, before .. url .. after)
+            endif
+        endif
+    endfor
+enddef
