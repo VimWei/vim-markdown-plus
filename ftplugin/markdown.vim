@@ -6,6 +6,7 @@ import autoload 'mplus/todo.vim' as todo
 import autoload 'mplus/code.vim' as code
 import autoload 'mplus/quote.vim' as quote
 import autoload 'mplus/list.vim' as list
+import autoload 'mplus/llmclean.vim' as llmclean
 
 # localleader ------------------------------------------------------------{{{1
 var leader = get(g:, 'markdown_leader', '<localleader>')
@@ -199,3 +200,20 @@ endfor
 # Restore original markdown list formatting after gq.
 # Supports file or visual selection.
 command! -range=% UngqFormat call mplus#gqformat#UngqFormat(<line1>, <line2>)
+
+# LLMClean ---------------------------------------------------------------{{{1
+# Clean up AI-generated Markdown formatting with interactive dialog.
+command! -range LLMClean call mplus#llmclean#Run(<line1>, <line2>)
+
+if !hasmapto('<Plug>LLMClean')
+    if empty(mapcheck($'{leader}a', 'n', 1))
+        execute $'nnoremap <buffer> {leader}a <Plug>LLMClean'
+    endif
+    if empty(mapcheck($'{leader}a', 'x', 1))
+        execute $'xnoremap <buffer> {leader}a <Plug>LLMClean'
+    endif
+endif
+if empty(maparg('<Plug>LLMClean'))
+    execute $'nnoremap <script> <buffer> <Plug>LLMClean :LLMClean<CR>'
+    execute $'xnoremap <script> <buffer> <Plug>LLMClean :LLMClean<CR>'
+endif

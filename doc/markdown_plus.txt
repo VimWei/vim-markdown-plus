@@ -20,11 +20,13 @@ CONTENTS                                     *markdown-plus-contents*
    3.4 Code Blocks....................|markdown-plus-code-blocks|
    3.5 Quote Blocks...................|markdown-plus-quote-blocks|
    3.6 List Symbol Conversion.........|markdown-plus-list-symbol|
+   3.7 LLM Clean......................|markdown-plus-llm-clean|
 4. Commands...........................|markdown-plus-commands|
    4.1 Todo Management................|markdown-plus-todo-commands|
    4.2 Code Block Commands............|markdown-plus-codeblock-commands|
    4.3 Quote Block Commands...........|markdown-plus-quoteblock-commands|
    4.4 List Formatting................|markdown-plus-list-formatting|
+   4.5 LLM Clean......................|markdown-plus-llmclean-commands|
 5. Options............................|markdown-plus-options|
 
 ======================================================================
@@ -267,6 +269,44 @@ These `<Plug>` mappings can be remapped to different keys if needed. For example
 
 This feature makes it easy to standardize or change list styles in your markdown documents with a single keystroke, supporting both single-line and multi-line selections.
 
+----------------------------------------------------------------------
+3.7 LLM Clean                                 *markdown-plus-llm-clean*
+
+The following mapping opens an interactive dialog to clean up AI-generated
+Markdown formatting. It presents a checklist of operations that can be
+toggled on/off before execution.
+
+Mapping:
+- `<localleader>a`: Open LLMClean dialog
+
+Plug mapping (for custom key bindings):
+- `<Plug>LLMClean`: Open LLMClean dialog
+
+This Plug mapping can be remapped to different keys if needed. For example:
+>
+    nmap <leader>a <Plug>LLMClean
+    xmap <leader>a <Plug>LLMClean
+<
+
+The dialog supports two modes:
+- Normal mode: Clean the entire file
+- Visual mode: Clean only the selected range (supports both `v` and `V`)
+
+The following operations are available (all enabled by default):
+
+1. Delete lines starting with `---`
+2. Promote H3+ headings by one level (H3→H2, H4→H3, etc.)
+3. Add empty line after H2+ headings (if next line is not blank)
+4. Remove all markdown text style (bold, italic, strikethrough, inline code)
+5. Remove leading 2 spaces
+6. Remove spaces after Chinese colon (`： ` → `：`)
+7. Remove redundant spaces after numbered list items
+8. Remove backslash in numbered lists (`1\.` → `1.`)
+
+Operations are executed in the order listed above. Line changes from each
+operation are tracked to ensure subsequent operations apply to the correct
+range.
+
 ======================================================================
 4. COMMANDS                                    *markdown-plus-commands*
 
@@ -320,6 +360,21 @@ filetype is set to markdown automatically by the plugin.
 
 :UngqFormat [range]
     Restore the original formatting of lines that were previously formatted with `gq`.
+
+----------------------------------------------------------------------
+4.5 LLM Clean                            *markdown-plus-llmclean-commands*
+
+:LLMClean [range]
+    Open an interactive dialog to clean up AI-generated Markdown formatting.
+    The dialog presents a checklist of cleanup operations that can be
+    toggled on or off before execution.
+
+    When called without a visual selection, operates on the entire file.
+    When called with a visual selection (`v` or `V`), operates only on
+    the selected range.
+
+    Requires vim-quickui for the dialog interface.
+    See |markdown-plus-llm-clean| for available operations.
 
 ======================================================================
 5. OPTIONS                                      *markdown-plus-options*
