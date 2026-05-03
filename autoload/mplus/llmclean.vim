@@ -7,13 +7,17 @@ var items: list<dict<any>> = [
     {label: 'Promote H3+ headings by one level', cmd: '{range}s/###/##/g', enabled: true},
     {label: 'Add empty line after H2+ headings', cmd: '', enabled: true},
     {label: 'Delete lines starting with ---', cmd: '', enabled: true},
+    {label: 'Remove citation markers like [1] or [3, 4]', cmd: '{range}s/\s\+\[\d.\{-}\]//g', enabled: true},
     {label: 'Remove spaces after Chinese punctuation', cmd: '{range}s/\([：，。]\) /\1/g', enabled: true},
     {label: 'Remove backslash in numbered lists', cmd: '{range}s/\(\d\+\)\\\(\.\)/\1\2/g', enabled: true},
     {label: 'Remove redundant spaces after numbered list', cmd: '{range}s/\(\d\.\)\s\+/\1 /g', enabled: true},
+    {label: 'Remove redundant spaces after bullet list', cmd: '{range}s/\([\*\-\+]\s\)\s\+/\1/g', enabled: true},
     {label: 'Remove leading 2 spaces', cmd: '{range}s/^  //g', enabled: false},
 ]
 
-var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7]
+var defaults: list<bool> = items->copy()->map((_, v) => v.enabled)
+
+var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 export def Run(firstline: number, lastline: number)
     var cmd_range: string = '%'
@@ -59,8 +63,8 @@ export def Run(firstline: number, lastline: number)
         endif
 
         if result.button_index == 1
-            for item in items
-                item.enabled = true
+            for i in range(items->len())
+                items[i].enabled = defaults[i]
             endfor
             continue
         endif

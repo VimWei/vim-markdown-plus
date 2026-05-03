@@ -292,20 +292,22 @@ The dialog supports two modes:
 - Normal mode: Clean the entire file
 - Visual mode: Clean only the selected range (supports both `v` and `V`)
 
-The following operations are available (all enabled by default):
+The following operations are available:
 
-1. Delete lines starting with `---`
-2. Promote H3+ headings by one level (H3→H2, H4→H3, etc.)
-3. Add empty line after H2+ headings (if next line is not blank)
-4. Remove all markdown text style (bold, italic, strikethrough, inline code)
-5. Remove leading 2 spaces
-6. Remove spaces after Chinese colon (`： ` → `：`)
-7. Remove redundant spaces after numbered list items
-8. Remove backslash in numbered lists (`1\.` → `1.`)
+ 1. Remove all markdown text style (bold, italic, strikethrough, inline code)
+ 2. Promote H3+ headings by one level (H3→H2, H4→H3, etc.)
+ 3. Add empty line after H2+ headings (if next line is not blank)
+ 4. Delete lines starting with `---`
+ 5. Remove citation markers like `[1]` or `[3, 4]`
+ 6. Remove spaces after Chinese punctuation (`： ` → `：`, `， ` → `，`, `。 ` → `。`)
+ 7. Remove backslash in numbered lists (`1\.` → `1.`)
+ 8. Remove redundant spaces after numbered list items (`1.   ` → `1. `)
+ 9. Remove redundant spaces after bullet list items (`*  ` → `* `)
+10. Remove leading 2 spaces (disabled by default)
 
-Operations are executed in the order listed above. Line changes from each
-operation are tracked to ensure subsequent operations apply to the correct
-range.
+Operations 1-9 are enabled by default. Operations are executed in the order
+listed above. Line changes from each operation are tracked to ensure
+subsequent operations apply to the correct range.
 
 ======================================================================
 4. COMMANDS                                    *markdown-plus-commands*
