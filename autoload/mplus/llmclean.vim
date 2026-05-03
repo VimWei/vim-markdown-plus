@@ -3,14 +3,14 @@ vim9script
 import autoload './text.vim' as text
 
 var items: list<dict<any>> = [
-    {label: 'Delete lines starting with ---', cmd: '', enabled: true},
+    {label: 'Remove all markdown text style', cmd: '', enabled: true},
     {label: 'Promote H3+ headings by one level', cmd: '{range}s/###/##/g', enabled: true},
     {label: 'Add empty line after H2+ headings', cmd: '', enabled: true},
-    {label: 'Remove all markdown text style', cmd: '', enabled: true},
-    {label: 'Remove leading 2 spaces', cmd: '{range}s/^  //g', enabled: true},
-    {label: 'Remove spaces after Chinese colon', cmd: '{range}s/： /：/g', enabled: true},
-    {label: 'Remove redundant spaces after numbered list', cmd: '{range}s/\(\d\.\)\s\+/\1 /g', enabled: true},
+    {label: 'Delete lines starting with ---', cmd: '', enabled: true},
+    {label: 'Remove spaces after Chinese punctuation', cmd: '{range}s/\([：，。]\) /\1/g', enabled: true},
     {label: 'Remove backslash in numbered lists', cmd: '{range}s/\(\d\+\)\\\(\.\)/\1\2/g', enabled: true},
+    {label: 'Remove redundant spaces after numbered list', cmd: '{range}s/\(\d\.\)\s\+/\1 /g', enabled: true},
+    {label: 'Remove leading 2 spaces', cmd: '{range}s/^  //g', enabled: false},
 ]
 
 var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -89,16 +89,13 @@ def ExecuteItems(ops: list<dict<any>>, cmd_range: string, start_line: number, en
 
         var lines_before: number = line('$')
 
-        if idx == 3
-            if &filetype != 'markdown'
-                continue
-            endif
+        if idx == 0
             RemoveAllInRange(current_start, current_end, cmd_range)
             executed += 1
         elseif idx == 2
             AddEmptyLineAfterHeadings(current_start, current_end)
             executed += 1
-        elseif idx == 0
+        elseif idx == 3
             DeleteLinesStartingWith(current_start, current_end, '^---')
             executed += 1
         else
