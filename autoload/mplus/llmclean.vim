@@ -53,10 +53,11 @@ export def Run(firstline: number, lastline: number)
         add(dialog_items, {
             type: 'button',
             name: 'action',
+            focus: 1,
             items: [' &Execute ', ' &Reset ', ' &Cancel '],
         })
 
-        var result = quickui#dialog#open(dialog_items, {title: 'LLMClean', focus: 'action'})
+        var result = quickui#dialog#open(dialog_items, {title: 'LLMClean'})
 
         if result.button_index < 0 || result.button_index == 2
             return
