@@ -53,7 +53,7 @@ export def Run(firstline: number, lastline: number)
         add(dialog_items, {
             type: 'button',
             name: 'action',
-            focus: 1,
+            focus: 0,
             items: [' &Execute ', ' &Reset ', ' &Cancel '],
         })
 
