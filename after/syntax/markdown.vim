@@ -32,6 +32,15 @@ execute('syn match markdownTodoDone "[' .. checkbox_chars .. ']" containedin=mar
 hi def link markdownTodo         markdownListMarker
 hi def link markdownTodoDone     markdownBold
 
+# ==mark== Highlight Support ---------------------------------------------{{{1
+# Add markdownMark syntax region (not defined in upstream vim-markdown).
+# This is required for the ToggleSurround/IsInRange toggle-off detection.
+var conceal = has('conceal') && get(g:, 'markdown_syntax_conceal', 1) == 1 ? ' concealends' : ''
+exe 'syn region markdownMark matchgroup=markdownMarkDelimiter start=/==\S\@=/ end=/\S\@<===\|^$/ contains=markdownLineStart,@Spell' .. conceal
+syn cluster markdownInline add=markdownMark
+hi def link markdownMark htmlMark
+hi def link markdownMarkDelimiter markdownMark
+
 # Override markdownError syntax rule -------------------------------------{{{1
 # Remove only the underscore-related error detection while keeping other error checks
 # The default rule "syn match markdownError "\w\@<=_\w\@="" matches underscores between word chars
