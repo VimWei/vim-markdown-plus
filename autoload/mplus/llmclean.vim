@@ -8,16 +8,15 @@ var items: list<dict<any>> = [
     {label: 'Add empty line after H2+ headings', cmd: '', enabled: true},
     {label: 'Delete lines starting with ---', cmd: '', enabled: true},
     {label: 'Remove citation markers like [1] or [3, 4]', cmd: '{range}s/\s\+\[\d.\{-}\]//g', enabled: true},
-    {label: 'Remove spaces after Chinese punctuation', cmd: '{range}s/\([：，。]\) /\1/g', enabled: true},
+    {label: 'Remove spaces around Chinese punctuation', cmd: 'TrimChinesePunctSpaces', enabled: true},
     {label: 'Remove backslash in numbered lists', cmd: '{range}s/\(\d\+\)\\\(\.\)/\1\2/g', enabled: true},
-    {label: 'Remove redundant spaces after numbered list', cmd: '{range}s/\(\d\.\)\s\+/\1 /g', enabled: true},
-    {label: 'Remove redundant spaces after bullet list', cmd: '{range}s/\([\*\-\+]\s\)\s\+/\1/g', enabled: true},
+    {label: 'Remove redundant spaces after list', cmd: 'RemoveRedundantSpacesAfterList', enabled: true},
     {label: 'Remove leading 2 spaces', cmd: '{range}s/^  //g', enabled: false},
 ]
 
 var defaults: list<bool> = items->copy()->map((_, v) => v.enabled)
 
-var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 export def Run(firstline: number, lastline: number)
     var cmd_range: string = '%'
@@ -103,6 +102,12 @@ def ExecuteItems(ops: list<dict<any>>, cmd_range: string, start_line: number, en
         elseif idx == 3
             DeleteLinesStartingWith(current_start, current_end, '^---')
             executed += 1
+        elseif idx == 5
+            TrimChinesePunctSpaces(current_start, current_end)
+            executed += 1
+        elseif idx == 7
+            RemoveRedundantSpacesAfterList(current_start, current_end)
+            executed += 1
         else
             var range_str: string = cmd_range == '%' ? '%' : $'{current_start},{current_end}'
             var cmd: string = ops[idx].cmd->substitute('{range}', range_str, 'g')
@@ -152,6 +157,33 @@ def AddEmptyLineAfterHeadings(start_line: number, end_line: number)
             if nextline !~ '^$'
                 append(lnum, '')
             endif
+        endif
+        lnum -= 1
+    endwhile
+enddef
+
+def TrimChinesePunctSpaces(start_line: number, end_line: number)
+    var punct_pattern: string = '[：，、；。？]'
+    var lnum: number = end_line
+    while lnum >= start_line
+        var line_text: string = getline(lnum)
+        var new_text: string = line_text->substitute($'\s\+\ze{punct_pattern}', '', 'g')
+        new_text = new_text->substitute($'{punct_pattern}\zs\s\+', '', 'g')
+        if line_text != new_text
+            silent! call setline(lnum, new_text)
+        endif
+        lnum -= 1
+    endwhile
+enddef
+
+def RemoveRedundantSpacesAfterList(start_line: number, end_line: number)
+    var lnum: number = end_line
+    while lnum >= start_line
+        var line_text: string = getline(lnum)
+        var new_text: string = line_text->substitute('\(\d\.\)\s\+', '\1 ', 'g')
+        new_text = new_text->substitute('\([\*\-\+]\s\)\s\+', '\1', 'g')
+        if line_text != new_text
+            silent! call setline(lnum, new_text)
         endif
         lnum -= 1
     endwhile
