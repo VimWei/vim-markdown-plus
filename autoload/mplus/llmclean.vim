@@ -6,17 +6,18 @@ var items: list<dict<any>> = [
     {label: 'Remove all markdown text style', cmd: '', enabled: true},
     {label: 'Promote H3+ headings by one level', cmd: '{range}s/###/##/g', enabled: true},
     {label: 'Add empty line after H2+ headings', cmd: '', enabled: true},
-    {label: 'Delete lines starting with ---', cmd: '', enabled: true},
+    {label: 'Delete lines matching ---', cmd: '', enabled: true},
+    {label: 'Delete empty line before codeblock end', cmd: '', enabled: true},
     {label: 'Remove citation markers like [1] or [3, 4]', cmd: '{range}s/\s\+\[\d.\{-}\]//g', enabled: true},
-    {label: 'Remove spaces around Chinese punctuation', cmd: 'TrimChinesePunctSpaces', enabled: true},
+    {label: 'Remove spaces around Chinese punctuation', cmd: '', enabled: true},
     {label: 'Remove backslash in numbered lists', cmd: '{range}s/\(\d\+\)\\\(\.\)/\1\2/g', enabled: true},
-    {label: 'Remove redundant spaces after list', cmd: 'RemoveRedundantSpacesAfterList', enabled: true},
+    {label: 'Remove redundant spaces after list', cmd: '', enabled: true},
     {label: 'Remove leading 2 spaces', cmd: '{range}s/^  //g', enabled: false},
 ]
 
 var defaults: list<bool> = items->copy()->map((_, v) => v.enabled)
 
-var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+var exec_order: list<number> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 export def Run(firstline: number, lastline: number)
     var cmd_range: string = '%'
@@ -100,12 +101,15 @@ def ExecuteItems(ops: list<dict<any>>, cmd_range: string, start_line: number, en
             AddEmptyLineAfterHeadings(current_start, current_end)
             executed += 1
         elseif idx == 3
-            DeleteLinesStartingWith(current_start, current_end, '^---')
+            DeleteLinesMatching(current_start, current_end, '^---')
+            executed += 1
+        elseif idx == 4
+            DeleteEmptyLineBeforeCodeblockEnd(current_start, current_end)
             executed += 1
         elseif idx == 5
             TrimChinesePunctSpaces(current_start, current_end)
             executed += 1
-        elseif idx == 7
+        elseif idx == 8
             RemoveRedundantSpacesAfterList(current_start, current_end)
             executed += 1
         else
@@ -139,7 +143,7 @@ def RemoveAllInRange(start_line: number, end_line: number, cmd_range: string)
     redraw!
 enddef
 
-def DeleteLinesStartingWith(start_line: number, end_line: number, pattern: string)
+def DeleteLinesMatching(start_line: number, end_line: number, pattern: string)
     var lnum: number = end_line
     while lnum >= start_line
         if getline(lnum) =~ pattern
@@ -184,6 +188,18 @@ def RemoveRedundantSpacesAfterList(start_line: number, end_line: number)
         new_text = new_text->substitute('\([\*\-\+]\s\)\s\+', '\1', 'g')
         if line_text != new_text
             silent! call setline(lnum, new_text)
+        endif
+        lnum -= 1
+    endwhile
+enddef
+
+def DeleteEmptyLineBeforeCodeblockEnd(start_line: number, end_line: number)
+    var lnum: number = end_line
+    while lnum >= start_line
+        if getline(lnum) =~ '^```'
+            if lnum > 1 && getline(lnum - 1) =~ '^$'
+                silent! execute $':{lnum - 1}d'
+            endif
         endif
         lnum -= 1
     endwhile
