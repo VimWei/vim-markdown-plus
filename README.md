@@ -12,6 +12,7 @@ This plugin complements [vim-markdown](https://github.com/tpope/vim-markdown) an
 - Smart toggling Code Block and Quote Block
 - Smart toggling gq format
 - Smart list symbol conversion and deletion
+- Interactive cleaning for AI-generated Markdown
 - Syntax: Conceal markdown link and fix todo list checkbox
 
 ## Installation
