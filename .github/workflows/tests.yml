@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          version: v9.1.1270
+
+      - name: Clone wiki.vim dependency
+        run: |
+          git clone --depth 1 https://github.com/lervag/wiki.vim.git "$HOME/vimfiles/plugged/wiki.vim"
+        shell: bash
+
+      - name: Clone vim-quickui dependency
+        run: |
+          git clone --depth 1 https://github.com/skywind3000/vim-quickui.git "$HOME/vimfiles/plugged/vim-quickui"
+        shell: bash
+
+      - name: Run tests (Linux/macOS)
+        if: runner.os != 'Windows'
+        working-directory: test
+        run: make test
+
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        working-directory: test
+        run: .\run-tests.ps1

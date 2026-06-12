@@ -3,14 +3,15 @@ param(
 )
 
 $MYVIM = "vim"
-$MYVIM_ARGS = "-es", "-T", "dumb", "--not-a-term", "--noplugin", "-n"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptDir = (Get-Location).Path
 $ExitCode = 0
 
 function Run-TestFile($vimFile) {
     $name = [System.IO.Path]::GetFileNameWithoutExtension($vimFile)
+    $testDir = [System.IO.Path]::GetDirectoryName($vimFile)
     Write-Host "  $name ... " -NoNewline
-    $proc = Start-Process $MYVIM -ArgumentList @($MYVIM_ARGS, "-u", $vimFile, "+qall") -NoNewWindow -Wait -PassThru
+    $args = "-es", "-T", "dumb", "--not-a-term", "--noplugin", "-n", "-u", $vimFile, "+qall"
+    $proc = Start-Process $MYVIM -ArgumentList $args -NoNewWindow -Wait -PassThru -WorkingDirectory $testDir
     if ($proc.ExitCode -ne 0) {
         Write-Host "FAILED" -ForegroundColor Red
         return 1
@@ -19,9 +20,9 @@ function Run-TestFile($vimFile) {
     return 0
 }
 
-if ($Group -ne '') {
+if (![string]::IsNullOrEmpty($Group)) {
     # 运行指定测试组
-    $groupDir = Join-Path $ScriptDir $Group
+    $groupDir = "$ScriptDir\$Group"
     if (!(Test-Path $groupDir)) {
         Write-Host "Test group not found: $Group" -ForegroundColor Red
         exit 1

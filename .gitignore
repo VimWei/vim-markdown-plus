@@ -1,3 +1,9 @@
+## vim
 *.swp
 tags
-.docs/
+
+## test
+*-errors.txt
+error.log
+test-output.txt
+import-*.txt
