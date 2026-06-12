@@ -1,10 +1,7 @@
-vim9script
+﻿vim9script
 
 source ../init.vim
 import autoload '../../autoload/mplus/utils.vim' as utils
-
-setlocal filetype=markdown
-setlocal syntax=markdown
 
 # --- Comparison function tests ---
 
@@ -24,7 +21,6 @@ def Test_is_equal_basic()
 enddef
 
 # --- IsInRange tests (synID-based) ---
-# Each test uses :syntax sync fromstart to ensure clean syntax state
 
 def Test_is_in_range_bold()
     syntax sync fromstart
@@ -87,12 +83,12 @@ enddef
 
 def Test_is_in_range_cjk_bold()
     syntax sync fromstart
-    setline(1, '**你好世界**文本')
+    setline(1, '**浣犲ソ涓栫晫**鏂囨湰')
     setcursorcharpos(1, 5)
     redraw
     var r = utils.IsInRange()
     assert_true(has_key(r, 'markdownBold'))
-    assert_equal([[1, 3], [1, 6]], r['markdownBold'])
+    assert_equal([[1, 3], [1, 8]], r['markdownBold'])
 enddef
 
 def Test_is_in_range_multiline_bold_line1()
@@ -127,29 +123,29 @@ enddef
 
 def Test_is_in_range_ascii_cjk_mixed()
     syntax sync fromstart
-    setline(1, 'Hello**你好world** end')
+    setline(1, 'Hello**浣犲ソworld** end')
     setcursorcharpos(1, 10)
     redraw
     var r = utils.IsInRange()
     assert_true(has_key(r, 'markdownBold'))
-    assert_equal([[1, 8], [1, 14]], r['markdownBold'])
+    assert_equal([[1, 8], [1, 15]], r['markdownBold'])
 enddef
 
 # --- Run all tests ---
-Test_is_less_basic()
-Test_is_greater_basic()
-Test_is_equal_basic()
-Test_is_in_range_bold()
-Test_is_in_range_italic()
-Test_is_in_range_strike()
-Test_is_in_range_code()
-Test_is_in_range_underscore_bold()
-Test_is_in_range_outside()
-Test_is_in_range_cjk_bold()
-Test_is_in_range_multiline_bold_line1()
-Test_is_in_range_multiline_bold_line2()
-Test_is_in_range_emoji_bold()
-Test_is_in_range_ascii_cjk_mixed()
+g:RunTestInBuffer(function('Test_is_less_basic'))
+g:RunTestInBuffer(function('Test_is_greater_basic'))
+g:RunTestInBuffer(function('Test_is_equal_basic'))
+g:RunTestInBuffer(function('Test_is_in_range_bold'))
+g:RunTestInBuffer(function('Test_is_in_range_italic'))
+g:RunTestInBuffer(function('Test_is_in_range_strike'))
+g:RunTestInBuffer(function('Test_is_in_range_code'))
+g:RunTestInBuffer(function('Test_is_in_range_underscore_bold'))
+g:RunTestInBuffer(function('Test_is_in_range_outside'))
+g:RunTestInBuffer(function('Test_is_in_range_cjk_bold'))
+g:RunTestInBuffer(function('Test_is_in_range_multiline_bold_line1'))
+g:RunTestInBuffer(function('Test_is_in_range_multiline_bold_line2'))
+g:RunTestInBuffer(function('Test_is_in_range_emoji_bold'))
+g:RunTestInBuffer(function('Test_is_in_range_ascii_cjk_mixed'))
 
 # --- Report ---
 if len(v:errors) > 0

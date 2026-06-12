@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- RemoveAll: single-line tests ---
 
 def Test_remove_all_bold()
@@ -94,10 +91,6 @@ def Test_remove_all_multiline_mixed()
     assert_equal('world', getline(2))
 enddef
 
-# --- RemoveAll: CJK tests ---
-# NOTE: RemoveAll has known edge cases with CJK text delimiter removal.
-# CJK toggle (ToggleSurround) works correctly; RemoveAll is not tested with CJK.
-
 # --- RemoveAll: emoji tests ---
 
 def Test_remove_all_emoji_bold()
@@ -159,21 +152,21 @@ def Test_remove_surrounding_multiline_bold()
 enddef
 
 # --- Run all tests ---
-Test_remove_all_bold()
-Test_remove_all_italic()
-Test_remove_all_strike()
-Test_remove_all_mark()
-Test_remove_all_code()
-Test_remove_all_nested_bold_italic()
-Test_remove_all_multiple_styles()
-Test_remove_all_multiline_bold()
-Test_remove_all_multiline_mixed()
-Test_remove_all_emoji_bold()
-Test_remove_surrounding_bold()
-Test_remove_surrounding_italic()
-Test_remove_surrounding_strike()
-Test_remove_surrounding_cjk_bold()
-Test_remove_surrounding_multiline_bold()
+g:RunTestInBuffer(function('Test_remove_all_bold'))
+g:RunTestInBuffer(function('Test_remove_all_italic'))
+g:RunTestInBuffer(function('Test_remove_all_strike'))
+g:RunTestInBuffer(function('Test_remove_all_mark'))
+g:RunTestInBuffer(function('Test_remove_all_code'))
+g:RunTestInBuffer(function('Test_remove_all_nested_bold_italic'))
+g:RunTestInBuffer(function('Test_remove_all_multiple_styles'))
+g:RunTestInBuffer(function('Test_remove_all_multiline_bold'))
+g:RunTestInBuffer(function('Test_remove_all_multiline_mixed'))
+g:RunTestInBuffer(function('Test_remove_all_emoji_bold'))
+g:RunTestInBuffer(function('Test_remove_surrounding_bold'))
+g:RunTestInBuffer(function('Test_remove_surrounding_italic'))
+g:RunTestInBuffer(function('Test_remove_surrounding_strike'))
+g:RunTestInBuffer(function('Test_remove_surrounding_cjk_bold'))
+g:RunTestInBuffer(function('Test_remove_surrounding_multiline_bold'))
 
 # --- Report ---
 if len(v:errors) > 0

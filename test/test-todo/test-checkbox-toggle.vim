@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/todo.vim' as todo
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- Test: Convert normal list item to todo ---
 def Test_checkbox_toggle_normal_list()
     setline(1, '- Item text')
@@ -71,15 +68,15 @@ def Test_checkbox_toggle_cjk()
 enddef
 
 # --- Run all tests ---
-Test_checkbox_toggle_normal_list()
-Test_checkbox_toggle_star_list()
-Test_checkbox_toggle_plus_list()
-Test_checkbox_toggle_remove_checkbox()
-Test_checkbox_toggle_remove_done()
-Test_checkbox_toggle_plain_text()
-Test_checkbox_toggle_multiple_lines()
-Test_checkbox_toggle_indented()
-Test_checkbox_toggle_cjk()
+g:RunTestInBuffer(function('Test_checkbox_toggle_normal_list'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_star_list'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_plus_list'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_remove_checkbox'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_remove_done'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_plain_text'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_multiple_lines'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_indented'))
+g:RunTestInBuffer(function('Test_checkbox_toggle_cjk'))
 
 # --- Report ---
 if len(v:errors) > 0

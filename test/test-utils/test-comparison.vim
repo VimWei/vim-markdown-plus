@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/utils.vim' as utils
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- Test: IsLess basic comparison ---
 def Test_is_less_basic()
     assert_true(utils.IsLess([1, 2], [1, 3]))
@@ -14,10 +11,8 @@ enddef
 
 # --- Test: IsLess different length ---
 def Test_is_less_different_length()
-    # [1] and [1, 2] have common prefix [1], so IsLess returns false
     assert_false(utils.IsLess([1], [1, 2]))
     assert_false(utils.IsLess([1, 2], [1]))
-    # [1] < [2] regardless of length
     assert_true(utils.IsLess([1], [2, 0]))
 enddef
 

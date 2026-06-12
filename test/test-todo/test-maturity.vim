@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/todo.vim' as todo
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- Test: MaturityNext [ ] -> [.] ---
 def Test_maturity_next_space_to_dot()
     setline(1, '- [ ] Item text')
@@ -98,19 +95,19 @@ def Test_maturity_cjk()
 enddef
 
 # --- Run all tests ---
-Test_maturity_next_space_to_dot()
-Test_maturity_next_dot_to_o()
-Test_maturity_next_o_to_O()
-Test_maturity_next_O_to_x()
-Test_maturity_next_x_stays()
-Test_maturity_next_non_checkbox()
-Test_maturity_previous_x_to_O()
-Test_maturity_previous_O_to_o()
-Test_maturity_previous_o_to_dot()
-Test_maturity_previous_dot_to_space()
-Test_maturity_previous_space_stays()
-Test_maturity_previous_non_checkbox()
-Test_maturity_cjk()
+g:RunTestInBuffer(function('Test_maturity_next_space_to_dot'))
+g:RunTestInBuffer(function('Test_maturity_next_dot_to_o'))
+g:RunTestInBuffer(function('Test_maturity_next_o_to_O'))
+g:RunTestInBuffer(function('Test_maturity_next_O_to_x'))
+g:RunTestInBuffer(function('Test_maturity_next_x_stays'))
+g:RunTestInBuffer(function('Test_maturity_next_non_checkbox'))
+g:RunTestInBuffer(function('Test_maturity_previous_x_to_O'))
+g:RunTestInBuffer(function('Test_maturity_previous_O_to_o'))
+g:RunTestInBuffer(function('Test_maturity_previous_o_to_dot'))
+g:RunTestInBuffer(function('Test_maturity_previous_dot_to_space'))
+g:RunTestInBuffer(function('Test_maturity_previous_space_stays'))
+g:RunTestInBuffer(function('Test_maturity_previous_non_checkbox'))
+g:RunTestInBuffer(function('Test_maturity_cjk'))
 
 # --- Report ---
 if len(v:errors) > 0

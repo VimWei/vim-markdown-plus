@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- ToggleSurround: ADD tests (visual selection path) ---
 
 def Test_toggle_add_bold()
@@ -150,22 +147,22 @@ def Test_toggle_remove_bold_emoji()
 enddef
 
 # --- Run all tests ---
-Test_toggle_add_bold()
-Test_toggle_add_italic()
-Test_toggle_add_strike()
-Test_toggle_add_mark()
-Test_toggle_add_code()
-Test_toggle_add_bold_multiline()
-Test_toggle_add_bold_cjk()
-Test_toggle_add_italic_cjk()
-Test_toggle_add_bold_emoji()
-Test_toggle_remove_bold()
-Test_toggle_remove_italic()
-Test_toggle_remove_strike()
-Test_toggle_remove_code()
-Test_toggle_remove_bold_cjk()
-Test_toggle_remove_bold_multiline()
-Test_toggle_remove_bold_emoji()
+g:RunTestInBuffer(function('Test_toggle_add_bold'))
+g:RunTestInBuffer(function('Test_toggle_add_italic'))
+g:RunTestInBuffer(function('Test_toggle_add_strike'))
+g:RunTestInBuffer(function('Test_toggle_add_mark'))
+g:RunTestInBuffer(function('Test_toggle_add_code'))
+g:RunTestInBuffer(function('Test_toggle_add_bold_multiline'))
+g:RunTestInBuffer(function('Test_toggle_add_bold_cjk'))
+g:RunTestInBuffer(function('Test_toggle_add_italic_cjk'))
+g:RunTestInBuffer(function('Test_toggle_add_bold_emoji'))
+g:RunTestInBuffer(function('Test_toggle_remove_bold'))
+g:RunTestInBuffer(function('Test_toggle_remove_italic'))
+g:RunTestInBuffer(function('Test_toggle_remove_strike'))
+g:RunTestInBuffer(function('Test_toggle_remove_code'))
+g:RunTestInBuffer(function('Test_toggle_remove_bold_cjk'))
+g:RunTestInBuffer(function('Test_toggle_remove_bold_multiline'))
+g:RunTestInBuffer(function('Test_toggle_remove_bold_emoji'))
 
 # --- Report ---
 if len(v:errors) > 0

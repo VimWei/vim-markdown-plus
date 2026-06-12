@@ -118,18 +118,15 @@ cd test && make clean
 ```vim
 vim9script
 
-# 1. 加载公共配置
+# 1. 加载公共配置（包含 g:RunTestInBuffer 辅助函数）
 source ../init.vim
 
 # 2. 加载被测模块
 import autoload '../../autoload/mplus/text.vim' as text
 import autoload '../../autoload/mplus/utils.vim' as utils
 
-# 3. 准备测试环境
-setlocal filetype=markdown
-setlocal syntax=markdown
-
-# 4. 编写测试用例（每个函数一个测试）
+# 3. 编写测试用例（每个函数一个测试）
+#    不需要在文件级设置 setlocal filetype/syntax —— g:RunTestInBuffer 会自动处理
 def Test_SurroundSimple_bold_single_line()
     # Setup: 设置缓冲区内容
     setline(1, 'Hello world')
@@ -146,15 +143,18 @@ def Test_SurroundSimple_bold_single_line()
 enddef
 
 def Test_RemoveSurrounding_bold()
+    syntax sync fromstart
     setline(1, '**Hello** world')
-    cursor(1, 3)  # 光标放在 Hello 上
+    setcursorcharpos(1, 3)
+    redraw
     text.RemoveSurrounding()
     assert_equal('Hello world', getline(1))
 enddef
 
-# 5. 运行所有测试并报告
-Test_SurroundSimple_bold_single_line()
-Test_RemoveSurrounding_bold()
+# 4. 运行所有测试并报告
+#    使用 g:RunTestInBuffer() 包裹每个测试，确保缓冲区隔离
+g:RunTestInBuffer(function('Test_SurroundSimple_bold_single_line'))
+g:RunTestInBuffer(function('Test_RemoveSurrounding_bold'))
 
 # 检查 v:errors 并退出
 if len(v:errors) > 0
@@ -294,54 +294,68 @@ if %EXIT_CODE% gtr 0 (
 ### 5. 公共初始化 `test/init.vim`
 
 ```vim
+vim9script
+
 set nocompatible
-let &runtimepath = simplify(fnamemodify(expand('<sfile>'), ':h') . '/..') . ',' . &runtimepath
+&runtimepath = simplify(fnamemodify(expand('<sfile>'), ':h') .. '/..') .. ',' .. &runtimepath
 set noswapfile
 set nomore
 set hidden
 
-" 确保 markdown 语法可用
 runtime! syntax/markdown.vim
 
-" 添加 wiki.vim 依赖（如果存在）
-let s:wiki_path = expand('$HOME/vimfiles/plugged/wiki.vim')
-if isdirectory(s:wiki_path)
-    let &runtimepath .= ',' . s:wiki_path
-    " 由于测试使用 --noplugin，需要显式加载 wiki.vim
-    execute 'source ' . s:wiki_path . '/plugin/wiki.vim'
+var wiki_path = expand('$HOME/vimfiles/plugged/wiki.vim')
+if isdirectory(wiki_path)
+    &runtimepath ..= ',' .. wiki_path
+    execute 'source ' .. wiki_path .. '/plugin/wiki.vim'
 endif
 
-" 添加 vim-quickui 依赖（如果存在）
-let s:quickui_path = expand('$HOME/vimfiles/plugged/vim-quickui')
-if isdirectory(s:quickui_path)
-    let &runtimepath .= ',' . s:quickui_path
-    " 由于测试使用 --noplugin，需要显式加载 vim-quickui
-    execute 'source ' . s:quickui_path . '/plugin/quickui.vim'
+var quickui_path = expand('$HOME/vimfiles/plugged/vim-quickui')
+if isdirectory(quickui_path)
+    &runtimepath ..= ',' .. quickui_path
+    execute 'source ' .. quickui_path .. '/plugin/quickui.vim'
 endif
+
+def g:RunTestInBuffer(TestFunc: func)
+    new
+    setlocal filetype=markdown
+    runtime! syntax/markdown.vim
+    syntax sync fromstart
+    redraw
+    try
+        TestFunc()
+    finally
+        bwipe!
+    endtry
+enddef
 ```
 
 **说明**：
+- `init.vim` 使用 `vim9script` 语法，与测试文件保持一致
 - 测试使用 `--noplugin` 启动，插件不会自动加载
 - 需要显式 `source` 插件文件来加载依赖
 - 使用 `isdirectory()` 检测依赖是否存在，避免硬编码路径
 - 依赖路径假设使用 vim-plug 安装到 `$HOME/vimfiles/plugged/`
+- `g:RunTestInBuffer()` 为每个测试提供独立缓冲区，隔离 marks、cursor、syntax 状态
 
 ## AI 测试编写指南
 
 当使用 AI（如 Claude、OpenCode 等）编写测试时，请遵循以下规则：
 
-### 规则 1: 纯 Vim9 Script
+### 规则 1: 纯 Vim9Script
 
-测试文件必须使用 `vim9script`，不使用任何第三方测试框架。断言使用 Vim 内置的 `assert_*` 函数族。
+所有测试代码（包括 `test/init.vim` 和所有 `test-*.vim` 文件）必须使用 `vim9script`，不使用任何第三方测试框架。断言使用 Vim 内置的 `assert_*` 函数族。
 
 ### 规则 2: 每个测试函数独立
 
 每个测试函数应该：
-1. 清理/设置缓冲区状态
+1. 设置缓冲区状态（`setline()`、`setcharpos()` 等）
 2. 使用 `setcharpos()` 设置 marks（推荐）或 `normal!` 模拟 visual 选择
 3. 使用 `setcursorcharpos()` 设置光标位置
 4. 调用被测函数
 5. 断言结果（文本内容、光标位置、marks 等）
+
+**调用时必须使用 `g:RunTestInBuffer()` 包裹**（见 §9.3），确保每个测试在独立缓冲区中运行：
 
 ```vim
 def Test_FunctionName_scenario()
@@ -356,6 +370,9 @@ def Test_FunctionName_scenario()
     # Assert
     assert_equal('expected output', getline(1))
 enddef
+
+# 调用（不是直接调用 Test_FunctionName_scenario()）
+g:RunTestInBuffer(function('Test_FunctionName_scenario'))
 ```
 
 ### 规则 3: 测试优先级
@@ -405,22 +422,19 @@ def Test_SurroundSimple_empty_selection() # 空选择
 
 #### 6.1 依赖加载配置
 
-在 `test/init.vim` 中添加依赖检测和加载：
+在 `test/init.vim` 中添加依赖检测和加载（vim9script 语法）：
 
 ```vim
-" 添加 wiki.vim 依赖（如果存在）
-let s:wiki_path = expand('$HOME/vimfiles/plugged/wiki.vim')
-if isdirectory(s:wiki_path)
-    let &runtimepath .= ',' . s:wiki_path
-    " 由于测试使用 --noplugin，需要显式加载插件
-    execute 'source ' . s:wiki_path . '/plugin/wiki.vim'
+var wiki_path = expand('$HOME/vimfiles/plugged/wiki.vim')
+if isdirectory(wiki_path)
+    &runtimepath ..= ',' .. wiki_path
+    execute 'source ' .. wiki_path .. '/plugin/wiki.vim'
 endif
 
-" 添加 vim-quickui 依赖（如果存在）
-let s:quickui_path = expand('$HOME/vimfiles/plugged/vim-quickui')
-if isdirectory(s:quickui_path)
-    let &runtimepath .= ',' . s:quickui_path
-    execute 'source ' . s:quickui_path . '/plugin/quickui.vim'
+var quickui_path = expand('$HOME/vimfiles/plugged/vim-quickui')
+if isdirectory(quickui_path)
+    &runtimepath ..= ',' .. quickui_path
+    execute 'source ' .. quickui_path .. '/plugin/quickui.vim'
 endif
 ```
 
@@ -614,19 +628,30 @@ text.SurroundSimple('markdownBold')
 
 #### 9.3 缓冲区清理
 
-每个测试函数应该清理自己创建的缓冲区：
+**标准模式：使用 `g:RunTestInBuffer()`**
+
+所有修改缓冲区的测试必须使用 `g:RunTestInBuffer()` 包裹。该辅助函数在 `test/init.vim` 中定义，为每个测试提供独立的缓冲区隔离：
 
 ```vim
-def Test_with_cleanup()
-    new  # 创建新缓冲区
-    try
-        setline(1, 'test')
-        # ... 测试逻辑 ...
-    finally
-        bwipe!  # 清理缓冲区
-    endtry
-enddef
+g:RunTestInBuffer(function('Test_my_test'))
 ```
+
+`g:RunTestInBuffer()` 内部执行以下操作：
+1. `new` — 创建全新缓冲区（无残留 marks、cursor、syntax 状态）
+2. `setlocal filetype=markdown` + `runtime! syntax/markdown.vim` — 初始化 markdown 语法
+3. `syntax sync fromstart` + `redraw` — 确保语法引擎完成解析
+4. 调用测试函数
+5. `bwipe!` — 彻底销毁缓冲区（finally 块，即使测试失败也会执行）
+
+**不要在测试文件顶部使用 `setlocal filetype=markdown` / `setlocal syntax=markdown`** —— `g:RunTestInBuffer()` 已在每个独立缓冲区中处理。
+
+**纯函数测试（不修改缓冲区）可以直接调用，无需包裹：**
+```vim
+Test_is_less_basic()
+Test_get_list_symbols()
+```
+
+**旧模式（已废弃）：** 不要使用 `:%delete _` 或 `setline()` 覆盖来清理状态。这些方法不清理 marks 和 cursor 位置，会导致测试间的状态泄漏。
 
 #### 9.4 错误预期测试
 
@@ -655,9 +680,6 @@ vim9script
 
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
-
-setlocal filetype=markdown
-setlocal syntax=markdown
 
 # --- Test: Bold surround single line ---
 def Test_bold_single_line()
@@ -707,11 +729,11 @@ def Test_bold_emoji()
 enddef
 
 # --- Run all tests ---
-Test_bold_single_line()
-Test_italic_single_line()
-Test_bold_multi_line()
-Test_bold_cjk()
-Test_bold_emoji()
+g:RunTestInBuffer(function('Test_bold_single_line'))
+g:RunTestInBuffer(function('Test_italic_single_line'))
+g:RunTestInBuffer(function('Test_bold_multi_line'))
+g:RunTestInBuffer(function('Test_bold_cjk'))
+g:RunTestInBuffer(function('Test_bold_emoji'))
 
 # --- Report ---
 if len(v:errors) > 0

@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- Test: Bold surround single line ---
 def Test_bold_single_line()
     setline(1, 'Hello world')
@@ -138,20 +135,20 @@ def Test_single_char()
 enddef
 
 # --- Run all tests ---
-Test_bold_single_line()
-Test_italic_single_line()
-Test_strike_single_line()
-Test_mark_single_line()
-Test_code_single_line()
-Test_bold_multi_line()
-Test_italic_multi_line()
-Test_bold_cjk()
-Test_italic_cjk()
-Test_cjk_multi_line()
-Test_ascii_cjk_mixed()
-Test_cjk_ascii_leading()
-Test_bold_emoji()
-Test_single_char()
+g:RunTestInBuffer(function('Test_bold_single_line'))
+g:RunTestInBuffer(function('Test_italic_single_line'))
+g:RunTestInBuffer(function('Test_strike_single_line'))
+g:RunTestInBuffer(function('Test_mark_single_line'))
+g:RunTestInBuffer(function('Test_code_single_line'))
+g:RunTestInBuffer(function('Test_bold_multi_line'))
+g:RunTestInBuffer(function('Test_italic_multi_line'))
+g:RunTestInBuffer(function('Test_bold_cjk'))
+g:RunTestInBuffer(function('Test_italic_cjk'))
+g:RunTestInBuffer(function('Test_cjk_multi_line'))
+g:RunTestInBuffer(function('Test_ascii_cjk_mixed'))
+g:RunTestInBuffer(function('Test_cjk_ascii_leading'))
+g:RunTestInBuffer(function('Test_bold_emoji'))
+g:RunTestInBuffer(function('Test_single_char'))
 
 # --- Report ---
 if len(v:errors) > 0

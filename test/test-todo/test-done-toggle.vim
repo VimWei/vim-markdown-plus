@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/todo.vim' as todo
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- Test: Toggle [ ] to [x] ---
 def Test_done_toggle_unchecked_to_checked()
     setline(1, '- [ ] Item text')
@@ -64,14 +61,14 @@ def Test_done_toggle_cjk()
 enddef
 
 # --- Run all tests ---
-Test_done_toggle_unchecked_to_checked()
-Test_done_toggle_checked_to_unchecked()
-Test_done_toggle_upper_X_to_unchecked()
-Test_done_toggle_dot_to_checked()
-Test_done_toggle_dash_to_checked()
-Test_done_toggle_non_checkbox()
-Test_done_toggle_multiple_lines()
-Test_done_toggle_cjk()
+g:RunTestInBuffer(function('Test_done_toggle_unchecked_to_checked'))
+g:RunTestInBuffer(function('Test_done_toggle_checked_to_unchecked'))
+g:RunTestInBuffer(function('Test_done_toggle_upper_X_to_unchecked'))
+g:RunTestInBuffer(function('Test_done_toggle_dot_to_checked'))
+g:RunTestInBuffer(function('Test_done_toggle_dash_to_checked'))
+g:RunTestInBuffer(function('Test_done_toggle_non_checkbox'))
+g:RunTestInBuffer(function('Test_done_toggle_multiple_lines'))
+g:RunTestInBuffer(function('Test_done_toggle_cjk'))
 
 # --- Report ---
 if len(v:errors) > 0

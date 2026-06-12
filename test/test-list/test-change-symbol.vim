@@ -3,9 +3,6 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/list.vim' as lst
 
-setlocal filetype=markdown
-setlocal syntax=markdown
-
 # --- Test: Change symbol from hyphen to star ---
 def Test_change_symbol_hyphen_to_star()
     setline(1, '- Item one')
@@ -98,7 +95,6 @@ enddef
 def Test_get_list_pattern()
     var pattern = lst.GetListPattern()
     assert_true(len(pattern) > 0)
-    # Verify pattern matches known list symbols
     assert_true('-' =~# pattern)
     assert_true('*' =~# pattern)
     assert_true('+' =~# pattern)
@@ -131,20 +127,20 @@ def Test_change_symbol_numeric_to_star()
 enddef
 
 # --- Run all tests ---
-Test_change_symbol_hyphen_to_star()
-Test_change_symbol_star_to_plus()
-Test_change_symbol_to_number()
-Test_change_symbol_to_alpha()
-Test_change_symbol_delete()
-Test_change_symbol_non_list()
-Test_change_symbol_indented()
-Test_change_symbol_multiple_lines()
-Test_change_symbol_cjk()
-Test_get_list_symbols()
-Test_get_list_pattern()
-Test_change_symbol_delete_indented()
-Test_change_symbol_preserves_content()
-Test_change_symbol_numeric_to_star()
+g:RunTestInBuffer(function('Test_change_symbol_hyphen_to_star'))
+g:RunTestInBuffer(function('Test_change_symbol_star_to_plus'))
+g:RunTestInBuffer(function('Test_change_symbol_to_number'))
+g:RunTestInBuffer(function('Test_change_symbol_to_alpha'))
+g:RunTestInBuffer(function('Test_change_symbol_delete'))
+g:RunTestInBuffer(function('Test_change_symbol_non_list'))
+g:RunTestInBuffer(function('Test_change_symbol_indented'))
+g:RunTestInBuffer(function('Test_change_symbol_multiple_lines'))
+g:RunTestInBuffer(function('Test_change_symbol_cjk'))
+g:RunTestInBuffer(function('Test_get_list_symbols'))
+g:RunTestInBuffer(function('Test_get_list_pattern'))
+g:RunTestInBuffer(function('Test_change_symbol_delete_indented'))
+g:RunTestInBuffer(function('Test_change_symbol_preserves_content'))
+g:RunTestInBuffer(function('Test_change_symbol_numeric_to_star'))
 
 # --- Report ---
 if len(v:errors) > 0
