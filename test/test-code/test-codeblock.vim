@@ -156,6 +156,84 @@ def Test_unset_codeblock_at_bof()
     assert_equal(['code', 'after'], getline(1, '$'))
 enddef
 
+# ========== SetBlock tests (using feedkeys to mock input()) ==========
+
+# --- Test: SetBlock single line with language ---
+def Test_set_codeblock_single()
+    :%delete _
+    setline(1, ['before', 'print("hello")', 'after'])
+    feedkeys("python\<CR>", 't')
+    code.SetBlock(2, 2)
+    assert_equal(['before', '```python', 'print("hello")', '```', 'after'], getline(1, '$'))
+enddef
+
+# --- Test: SetBlock multiple lines ---
+def Test_set_codeblock_multi()
+    :%delete _
+    setline(1, ['top', 'line1', 'line2', 'line3', 'bottom'])
+    feedkeys("js\<CR>", 't')
+    code.SetBlock(2, 4)
+    assert_equal(['top', '```js', 'line1', 'line2', 'line3', '```', 'bottom'], getline(1, '$'))
+enddef
+
+# --- Test: SetBlock with CJK content ---
+def Test_set_codeblock_cjk()
+    :%delete _
+    setline(1, ['top', '中文内容', '更多中文', 'bottom'])
+    feedkeys("python\<CR>", 't')
+    code.SetBlock(2, 3)
+    assert_equal(['top', '```python', '中文内容', '更多中文', '```', 'bottom'], getline(1, '$'))
+enddef
+
+# --- Test: SetBlock with empty language (just press Enter) ---
+def Test_set_codeblock_empty_label()
+    :%delete _
+    setline(1, ['top', 'some code', 'bottom'])
+    feedkeys("\<CR>", 't')
+    code.SetBlock(2, 2)
+    assert_equal(['top', '```', 'some code', '```', 'bottom'], getline(1, '$'))
+enddef
+
+# --- Test: SetBlock with CJK language label ---
+def Test_set_codeblock_cjk_label()
+    :%delete _
+    setline(1, ['top', '内容', 'bottom'])
+    feedkeys("中文\<CR>", 't')
+    code.SetBlock(2, 2)
+    assert_equal(['top', '```中文', '内容', '```', 'bottom'], getline(1, '$'))
+enddef
+
+# --- Test: SetBlock partial range in buffer ---
+def Test_set_codeblock_partial_range()
+    :%delete _
+    setline(1, ['before', 'code line 1', 'code line 2', 'after'])
+    feedkeys("py\<CR>", 't')
+    code.SetBlock(2, 3)
+    assert_equal(['before', '```py', 'code line 1', 'code line 2', '```', 'after'], getline(1, '$'))
+enddef
+
+# ========== ToggleCodeBlock tests ==========
+# ToggleCodeBlock uses synID() (unavailable in -es) but also checks
+# wrapper lines via regex, so both paths are testable:
+#   - Buffer with ``` wrappers → UnsetBlock path
+#   - Buffer without wrappers  → SetBlock path (needs feedkeys)
+
+# --- Test: ToggleCodeBlock removes existing codeblock (wrapper detection) ---
+def Test_toggle_codeblock_remove()
+    :%delete _
+    setline(1, ['```python', 'print("hello")', '```'])
+    code.ToggleCodeBlock(1, 3)
+    assert_equal(['print("hello")'], getline(1, '$'))
+enddef
+
+# --- Test: ToggleCodeBlock removes CJK codeblock ---
+def Test_toggle_codeblock_remove_cjk()
+    :%delete _
+    setline(1, ['```中文', '内容行', '```'])
+    code.ToggleCodeBlock(1, 3)
+    assert_equal(['内容行'], getline(1, '$'))
+enddef
+
 # --- Run all tests ---
 Test_unset_codeblock_single()
 Test_unset_codeblock_cjk()
@@ -172,6 +250,14 @@ Test_unset_codeblock_cjk_wrapper()
 Test_unset_codeblock_overlapping()
 Test_unset_codeblock_at_eof()
 Test_unset_codeblock_at_bof()
+Test_set_codeblock_single()
+Test_set_codeblock_multi()
+Test_set_codeblock_cjk()
+Test_set_codeblock_empty_label()
+Test_set_codeblock_cjk_label()
+Test_set_codeblock_partial_range()
+Test_toggle_codeblock_remove()
+Test_toggle_codeblock_remove_cjk()
 
 # --- Report ---
 if len(v:errors) > 0

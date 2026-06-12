@@ -12,7 +12,7 @@
 | 阶段 2.2 | test-todo | ✅ 完成 | 3 | 30 |
 | 阶段 2.3 | test-list | ✅ 完成 | 1 | 14 |
 | 阶段 2.4 | test-utils | ✅ 完成 | 2 | 14 |
-| 阶段 3.1 | test-code | ✅ 完成 | 1 | 13 |
+| 阶段 3.1 | test-code | ✅ 完成 | 1 | 22 |
 | 阶段 3.2 | test-quote | ✅ 完成 | 1 | 18 |
 | 阶段 3.3 | test-link | ✅ 完成 | 1 | 5 |
 | 阶段 4.1 | test-gqformat | ✅ 完成 | 1 | 15 |
@@ -113,7 +113,7 @@
 
 ### 阶段 3.1：test-code/（代码块测试）
 
-**文件**: `test/test-code/test-codeblock.vim`（13 个测试）
+**文件**: `test/test-code/test-codeblock.vim`（22 个测试）
 
 | 测试函数 | 覆盖场景 |
 |---------|---------|
@@ -130,8 +130,16 @@
 | `Test_unset_codeblock_cjk_wrapper` | CJK 语言标签 |
 | `Test_unset_codeblock_overlapping` | 重叠选中多个代码块 |
 | `Test_unset_codeblock_at_bof` | 文件开头的代码块 |
+| `Test_set_codeblock_single` | 单行添加代码块（使用 feedkeys 模拟 input） |
+| `Test_set_codeblock_multi` | 多行添加代码块 |
+| `Test_set_codeblock_cjk` | CJK 内容添加代码块 |
+| `Test_set_codeblock_empty_label` | 空语言标签 |
+| `Test_set_codeblock_cjk_label` | CJK 语言标签 |
+| `Test_set_codeblock_partial_range` | 部分范围添加代码块 |
+| `Test_toggle_codeblock_remove` | Toggle 移除现有代码块 |
+| `Test_toggle_codeblock_remove_cjk` | Toggle 移除 CJK 代码块 |
 
-**注意**: `SetBlock()` 使用 `input()` 交互，测试时需 mock 或跳过。`ToggleCodeBlock()` 依赖语法高亮。当前只测试 `UnsetBlock()`。
+**测试方法**: `SetBlock()` 使用 `input()` 交互，通过 `feedkeys("python\<CR>", 't')` 模拟用户输入。`ToggleCodeBlock()` 的 UnsetBlock 路径通过包裹行正则检测测试（无需语法高亮）。
 
 ### 阶段 3.2：test-quote/（引用块测试）
 
