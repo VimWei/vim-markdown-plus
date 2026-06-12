@@ -61,6 +61,9 @@ test/
 ├── test-link/            # 链接测试（依赖 wiki.vim）
 │   ├── Makefile
 │   └── test-toggle-link.vim
+├── test-constants/       # 常量验证测试
+│   ├── Makefile
+│   └── test-constants.vim
 ├── test-gqformat/        # 格式测试
 │   ├── Makefile
 │   └── test-ungq.vim
@@ -176,7 +179,7 @@ endif
 - 错误信息直接输出到控制台/CI 日志
 - 符合 Vim 官方测试的做法
 
-### 3. Makefile 模板
+### 4. Makefile 模板
 
 **顶层 `test/Makefile`:**
 ```makefile
@@ -199,7 +202,7 @@ MYVIM ?= vim -es -T dumb --not-a-term --noplugin -n
 
 tests := $(wildcard test-*.vim)
 
-.PHONY: all $(tests)
+.PHONY: test $(tests)
 
 test: $(tests)
 
@@ -207,7 +210,7 @@ $(tests):
 	@$(MYVIM) -u $@ +qall
 ```
 
-### 4. Windows 兼容脚本
+### 5. Windows 兼容脚本
 
 Makefile 依赖 GNU Make，Windows 默认没有。提供两套等效脚本：
 
@@ -296,7 +299,7 @@ if %EXIT_CODE% gtr 0 (
 )
 ```
 
-### 5. 公共初始化 `test/init.vim`
+### 6. 公共初始化 `test/init.vim`
 
 ```vim
 vim9script
@@ -361,7 +364,7 @@ enddef
 4. 调用被测函数
 5. 断言结果（文本内容、光标位置、marks 等）
 
-**调用时必须使用 `g:RunTestInBuffer()` 包裹**（见 §9.3），确保每个测试在独立缓冲区中运行：
+**调用时必须使用 `g:RunTestInBuffer()` 包裹**（见 §10.3），确保每个测试在独立缓冲区中运行：
 
 ```vim
 def Test_FunctionName_scenario()
@@ -371,7 +374,7 @@ def Test_FunctionName_scenario()
     setcharpos("']", [0, 1, 5, 0])
 
     # Execute
-    mplus#module#FunctionName(args)
+    module.FunctionName(args)
 
     # Assert
     assert_equal('expected output', getline(1))
@@ -691,7 +694,7 @@ import autoload '../../autoload/mplus/text.vim' as text
 def Test_bold_single_line()
     setline(1, 'Hello world')
     setcharpos("'[", [0, 1, 1, 0])
-    setcharpos("']", [0, 1, 5, 0])
+    setcharpos("']", [0, 1, 4, 0])
     text.SurroundSimple('markdownBold')
     assert_equal('**Hell**o world', getline(1))
 enddef
@@ -700,7 +703,7 @@ enddef
 def Test_italic_single_line()
     setline(1, 'Hello world')
     setcharpos("'[", [0, 1, 1, 0])
-    setcharpos("']", [0, 1, 5, 0])
+    setcharpos("']", [0, 1, 4, 0])
     text.SurroundSimple('markdownItalic')
     assert_equal('*Hell*o world', getline(1))
 enddef
@@ -709,7 +712,7 @@ enddef
 def Test_bold_multi_line()
     setline(1, ['Hello', 'beautiful', 'world'])
     setcharpos("'[", [0, 1, 1, 0])
-    setcharpos("']", [0, 2, 9, 0])
+    setcharpos("']", [0, 2, 10, 0])
     text.SurroundSimple('markdownBold')
     assert_equal('**Hello', getline(1))
     assert_equal('beautiful**', getline(2))
@@ -720,16 +723,16 @@ enddef
 def Test_bold_cjk()
     setline(1, '你好世界')
     setcharpos("'[", [0, 1, 1, 0])
-    setcharpos("']", [0, 1, 3, 0])  # 选择 "你好世"（3 个字符）
+    setcharpos("']", [0, 1, 2, 0])  # 选择 "你好"（2 个字符）
     text.SurroundSimple('markdownBold')
-    assert_equal('**你好世**界', getline(1))
+    assert_equal('**你好**世界', getline(1))
 enddef
 
 # --- Test: Emoji mixed ---
 def Test_bold_emoji()
     setline(1, 'Hello😀世界')
     setcharpos("'[", [0, 1, 6, 0])
-    setcharpos("']", [0, 1, 7, 0])  # 选择 "😀"
+    setcharpos("']", [0, 1, 6, 0])  # 选择 "😀"（单字符）
     text.SurroundSimple('markdownBold')
     assert_equal('Hello**😀**世界', getline(1))
 enddef
@@ -744,7 +747,7 @@ g:RunTestInBuffer(function('Test_bold_emoji'))
 # --- Report ---
 if len(v:errors) > 0
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else
@@ -759,29 +762,47 @@ endif
 
 ```yaml
 name: Tests
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
 
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: rhysd/action-setup-vim@v1
         with:
-          neovim: true
+          version: v9.1.1270
+
+      - name: Clone wiki.vim dependency
+        run: |
+          git clone --depth 1 https://github.com/lervag/wiki.vim.git "$HOME/vimfiles/plugged/wiki.vim"
+        shell: bash
+
+      - name: Clone vim-quickui dependency
+        run: |
+          git clone --depth 1 https://github.com/skywind3000/vim-quickui.git "$HOME/vimfiles/plugged/vim-quickui"
+        shell: bash
+
       - name: Run tests (Linux/macOS)
         if: runner.os != 'Windows'
-        run: |
-          cd test
-          make test
+        working-directory: test
+        run: make test
+
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
-        run: |
-          cd test
-          .\run-tests.ps1
+        working-directory: test
+        run: .\run-tests.ps1
 ```
 
 ### 测试覆盖率

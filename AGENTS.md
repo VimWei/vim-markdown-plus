@@ -37,7 +37,7 @@
 - **Structure**: each test group has its own `Makefile`; test files use `vim9script`, source `../init.vim`, import autoload modules, call test functions directly, report via `v:errors`
 - **Rules**: pure Vim9 script, no test framework, built-in `assert_*`, each test function independent
 - **Test groups implemented**:
-  - `test-text/`: `test-surround-simple.vim` — bold, italic, strike, mark, code surround; single/multi-line; CJK, emoji, mixed ASCII/CJK
+  - `test-text/`: `test-surround-simple.vim` (14 tests), `test-toggle-surround.vim` (16 tests, synID), `test-remove-all.vim` (15 tests, synID) — bold, italic, strike, mark, code surround; single/multi-line; CJK, emoji, mixed ASCII/CJK
   - `test-todo/`: `test-checkbox-toggle.vim`, `test-done-toggle.vim`, `test-maturity.vim` — checkbox toggle, done state, maturity levels
   - `test-list/`: `test-change-symbol.vim` — symbol change, delete, numeric/alpha lists, CJK, GetListSymbols, GetListPattern
   - `test-utils/`: `test-is-in-range.vim`, `test-comparison.vim` — IsLess/IsGreater/IsEqual comparison functions
