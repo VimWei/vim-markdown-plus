@@ -41,7 +41,9 @@ test/
 ├── init.vim              # 公共初始化（runtimepath、插件加载、依赖配置）
 ├── test-text/            # 文本样式测试（Bold/Italic/Strike/Mark/Code）
 │   ├── Makefile
-│   └── test-surround-simple.vim
+│   ├── test-surround-simple.vim   # SurroundSimple 测试（14 个）
+│   ├── test-toggle-surround.vim   # ToggleSurround 测试（16 个，含 synID）
+│   └── test-remove-all.vim        # RemoveAll/RemoveSurrounding 测试（15 个，含 synID）
 ├── test-todo/            # Todo checkbox 测试
 │   ├── Makefile
 │   ├── test-checkbox-toggle.vim
@@ -67,8 +69,8 @@ test/
 │   └── test-llmclean.vim
 └── test-utils/           # 工具函数测试
     ├── Makefile
-    ├── test-is-in-range.vim
-    └── test-comparison.vim
+    ├── test-is-in-range.vim       # IsInRange + 比较函数（14 个，含 synID）
+    └── test-comparison.vim        # 比较函数（11 个）
 ```
 
 ## 核心机制
@@ -555,24 +557,35 @@ charcol('.')             # 获取字符列号
 
 **注意**：多字节字符测试中，**必须**使用 `setcursorcharpos()` 和 `charcol()`，而非 `cursor()` 和 `col('.')`。
 
-#### 8.3 语法高亮依赖
+#### 8.3 语法高亮依赖（synID 在 -es 模式下可用）
 
-`IsInRange()` 依赖 `synID()` 检测语法高亮：
+`IsInRange()`、`ToggleSurround()`、`RemoveAll()` 等核心函数依赖 `synID()` 检测语法高亮。
+
+**重要发现**：`synID()` 在 Vim 的 `-es` 模式下**可以正常工作**，前提是 `test/init.vim` 中已通过 `runtime! syntax/markdown.vim` 加载了语法文件。这意味着所有依赖语法高亮的核心功能都可以在 headless 测试中完整覆盖。
+
+**验证方法**：
 
 ```vim
-def Test_syntax_dependent()
-    setline(1, '**bold** text')
-    setlocal filetype=markdown
-    setlocal syntax=markdown
+vim9script
+source ../init.vim
+import autoload '../../autoload/mplus/utils.vim' as utils
 
-    # 确保语法文件已加载
-    runtime! syntax/markdown.vim
+setline(1, '**bold text** normal')
+setcursorcharpos(1, 5)
+redraw
 
-    setcursorcharpos(1, 3)  # 光标在 "bold" 上（字符位置）
-    var range = utils.IsInRange()
-    assert_true(has_key(range, 'markdownBold'))
-enddef
+var syn_name = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
+assert_equal('markdownBold', syn_name)
+
+var range_info = utils.IsInRange()
+assert_true(has_key(range_info, 'markdownBold'))
+assert_equal([[1, 3], [1, 11]], range_info['markdownBold'])
 ```
+
+**注意事项**：
+- 查询 `synID()` 前必须调用 `redraw`，否则语法引擎可能未完成解析
+- `init.vim` 中的 `runtime! syntax/markdown.vim` 已足够，无需额外 `syntax enable` 或 `set filetype=markdown`
+- 此发现已验证于 Vim v9.1.1270（Win32/Linux）
 
 ### 规则 9: 常见陷阱
 

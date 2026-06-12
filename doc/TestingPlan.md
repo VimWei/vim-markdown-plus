@@ -8,10 +8,10 @@
 | 阶段 | 测试组 | 状态 | 文件数 | 测试数 |
 |------|--------|------|--------|--------|
 | 阶段 1 | 基础设施 | ✅ 完成 | 6 | - |
-| 阶段 2.1 | test-text | ✅ 完成 | 1 | 14 |
+| 阶段 2.1 | test-text | ✅ 完成 | 3 | 45 |
 | 阶段 2.2 | test-todo | ✅ 完成 | 3 | 30 |
 | 阶段 2.3 | test-list | ✅ 完成 | 1 | 14 |
-| 阶段 2.4 | test-utils | ✅ 完成 | 2 | 14 |
+| 阶段 2.4 | test-utils | ✅ 完成 | 2 | 25 |
 | 阶段 3.1 | test-code | ✅ 完成 | 1 | 22 |
 | 阶段 3.2 | test-quote | ✅ 完成 | 1 | 18 |
 | 阶段 3.3 | test-link | ✅ 完成 | 1 | 5 |
@@ -35,7 +35,7 @@
 
 ### 阶段 2.1：test-text/（文本样式测试）
 
-**文件**: `test/test-text/test-surround-simple.vim`（14 个测试）
+**文件 1**: `test/test-text/test-surround-simple.vim`（14 个测试）
 
 | 测试函数 | 覆盖场景 |
 |---------|---------|
@@ -53,6 +53,49 @@
 | `Test_cjk_ascii_leading` | 中文 + ASCII 混合 |
 | `Test_bold_emoji` | Emoji 单字符 |
 | `Test_single_char` | 单字符选择 |
+
+**文件 2**: `test/test-text/test-toggle-surround.vim`（16 个测试）
+
+| 测试函数 | 覆盖场景 |
+|---------|---------|
+| `Test_toggle_add_bold` | ToggleSurround 添加 Bold |
+| `Test_toggle_add_italic` | ToggleSurround 添加 Italic |
+| `Test_toggle_add_strike` | ToggleSurround 添加 Strike |
+| `Test_toggle_add_mark` | ToggleSurround 添加 Mark |
+| `Test_toggle_add_code` | ToggleSurround 添加 Code |
+| `Test_toggle_add_bold_multiline` | ToggleSurround 多行 Bold |
+| `Test_toggle_add_bold_cjk` | ToggleSurround CJK Bold |
+| `Test_toggle_add_italic_cjk` | ToggleSurround CJK Italic |
+| `Test_toggle_add_bold_emoji` | ToggleSurround Emoji Bold |
+| `Test_toggle_remove_bold` | ToggleSurround 移除 Bold（synID 检测） |
+| `Test_toggle_remove_italic` | ToggleSurround 移除 Italic（synID 检测） |
+| `Test_toggle_remove_strike` | ToggleSurround 移除 Strike（synID 检测） |
+| `Test_toggle_remove_code` | ToggleSurround 移除 Code（synID 检测） |
+| `Test_toggle_remove_bold_cjk` | ToggleSurround 移除 CJK Bold（synID 检测） |
+| `Test_toggle_remove_bold_multiline` | ToggleSurround 移除多行 Bold（synID 检测） |
+| `Test_toggle_remove_bold_emoji` | ToggleSurround 移除 Emoji Bold（synID 检测） |
+
+**文件 3**: `test/test-text/test-remove-all.vim`（15 个测试）
+
+| 测试函数 | 覆盖场景 |
+|---------|---------|
+| `Test_remove_all_bold` | RemoveAll 移除 Bold |
+| `Test_remove_all_italic` | RemoveAll 移除 Italic |
+| `Test_remove_all_strike` | RemoveAll 移除 Strike |
+| `Test_remove_all_mark` | RemoveAll 移除 Mark |
+| `Test_remove_all_code` | RemoveAll 移除 Code |
+| `Test_remove_all_nested_bold_italic` | RemoveAll 嵌套 Bold+Italic |
+| `Test_remove_all_multiple_styles` | RemoveAll 多样式 |
+| `Test_remove_all_multiline_bold` | RemoveAll 多行 Bold |
+| `Test_remove_all_multiline_mixed` | RemoveAll 多行混合样式 |
+| `Test_remove_all_emoji_bold` | RemoveAll Emoji Bold |
+| `Test_remove_surrounding_bold` | RemoveSurrounding Bold（synID 检测） |
+| `Test_remove_surrounding_italic` | RemoveSurrounding Italic（synID 检测） |
+| `Test_remove_surrounding_strike` | RemoveSurrounding Strike（synID 检测） |
+| `Test_remove_surrounding_cjk_bold` | RemoveSurrounding CJK Bold（synID 检测） |
+| `Test_remove_surrounding_multiline_bold` | RemoveSurrounding 多行 Bold（synID 检测） |
+
+**注意**: RemoveAll 与纯 CJK 文本存在边界情况（close delimiter 未被移除），已记录但不阻塞测试。所有 synID 依赖的测试使用 `syntax sync fromstart` 确保语法状态正确。
 
 ### 阶段 2.2：test-todo/（Todo checkbox 测试）
 
@@ -85,13 +128,24 @@
 
 ### 阶段 2.4：test-utils/（工具函数测试）
 
-**文件 1**: `test/test-utils/test-is-in-range.vim`（3 个测试）
+**文件 1**: `test/test-utils/test-is-in-range.vim`（14 个测试）
 
 | 测试函数 | 覆盖场景 |
 |---------|---------|
 | `Test_is_less_basic` | 基本字典序比较 |
 | `Test_is_greater_basic` | 基本字典序比较 |
 | `Test_is_equal_basic` | 相等比较 |
+| `Test_is_in_range_bold` | IsInRange Bold 文本（synID 检测） |
+| `Test_is_in_range_italic` | IsInRange Italic 文本（synID 检测） |
+| `Test_is_in_range_strike` | IsInRange Strike 文本（synID 检测） |
+| `Test_is_in_range_code` | IsInRange Code 文本（synID 检测） |
+| `Test_is_in_range_underscore_bold` | IsInRange 下划线 Bold（synID 检测） |
+| `Test_is_in_range_outside` | IsInRange 光标在样式外（返回空） |
+| `Test_is_in_range_cjk_bold` | IsInRange CJK Bold（synID 检测） |
+| `Test_is_in_range_multiline_bold_line1` | IsInRange 多行 Bold 第一行 |
+| `Test_is_in_range_multiline_bold_line2` | IsInRange 多行 Bold 第二行 |
+| `Test_is_in_range_emoji_bold` | IsInRange Emoji Bold（synID 检测） |
+| `Test_is_in_range_ascii_cjk_mixed` | IsInRange ASCII+CJK 混合 |
 
 **文件 2**: `test/test-utils/test-comparison.vim`（11 个测试）
 
@@ -109,7 +163,7 @@
 | `Test_is_less_with_zeros` | 含零值比较 |
 | `Test_is_greater_with_zeros` | 含零值比较 |
 
-**注意**: `IsInRange()` 测试需要语法高亮支持（`synID()`），在 Vim 的 `-es` 模式下无法正确加载 syntax 文件。当前只测试 `IsLess`/`IsGreater`/`IsEqual` 比较函数。
+**注意**: `IsInRange()` 依赖 `synID()` 检测语法高亮。经验证，`synID()` 在 `-es` 模式下配合 `init.vim` 中的 `runtime! syntax/markdown.vim` 可正常工作（查询前需 `redraw`）。多测试文件中使用 `syntax sync fromstart` 防止语法状态缓存导致死循环。
 
 ### 阶段 3.1：test-code/（代码块测试）
 
