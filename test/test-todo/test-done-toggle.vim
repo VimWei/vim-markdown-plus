@@ -72,9 +72,8 @@ g:RunTestInBuffer(function('Test_done_toggle_cjk'))
 
 # --- Report ---
 if len(v:errors) > 0
-    writefile(v:errors, 'test-errors.txt')
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else

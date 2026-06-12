@@ -144,9 +144,8 @@ g:RunTestInBuffer(function('Test_change_symbol_numeric_to_star'))
 
 # --- Report ---
 if len(v:errors) > 0
-    writefile(v:errors, 'test-errors.txt')
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else

@@ -87,9 +87,8 @@ Test_is_greater_with_zeros()
 
 # --- Report ---
 if len(v:errors) > 0
-    writefile(v:errors, 'test-errors.txt')
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else

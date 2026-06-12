@@ -5,6 +5,7 @@ set nocompatible
 set noswapfile
 set nomore
 set hidden
+set verbose=1
 
 runtime! syntax/markdown.vim
 

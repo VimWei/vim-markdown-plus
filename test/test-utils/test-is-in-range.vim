@@ -149,9 +149,8 @@ g:RunTestInBuffer(function('Test_is_in_range_ascii_cjk_mixed'))
 
 # --- Report ---
 if len(v:errors) > 0
-    writefile(v:errors, 'test-errors.txt')
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else

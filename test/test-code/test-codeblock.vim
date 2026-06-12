@@ -217,9 +217,8 @@ g:RunTestInBuffer(function('Test_toggle_codeblock_remove_cjk'))
 
 # --- Report ---
 if len(v:errors) > 0
-    writefile(v:errors, 'test-errors.txt')
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else

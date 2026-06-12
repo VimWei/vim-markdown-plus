@@ -107,12 +107,6 @@ cd test
 run-tests.cmd
 ```
 
-**清理测试产物:**
-```bash
-# 删除调试过程中产生的临时文件（*-errors.txt、error.log、test-output.txt 等）
-cd test && make clean
-```
-
 ### 2. 测试文件模板
 
 ```vim
@@ -159,7 +153,7 @@ g:RunTestInBuffer(function('Test_RemoveSurrounding_bold'))
 # 检查 v:errors 并退出
 if len(v:errors) > 0
     for err in v:errors
-        echoerr err
+        echomsg err
     endfor
     cquit!
 else
@@ -167,6 +161,20 @@ else
     quitall!
 endif
 ```
+
+### 3. 错误报告机制
+
+在 Vim 的 `-es` (silent ex) 模式下，`echoerr` 不会产生任何输出，错误信息会丢失。因此本项目使用 `echomsg` 配合 `set verbose=1` 来报告错误：
+
+- `init.vim` 中设置了 `set verbose=1`，确保 `echomsg` 的输出可见
+- 测试失败时，错误信息通过 `echomsg` 输出到 stderr
+- CI 和测试运行器可以捕获这些输出
+- 使用 `cquit!` 返回非零退出码，表示测试失败
+
+这种方式的优点：
+- 不需要清理临时文件（相比 `writefile` 方案）
+- 错误信息直接输出到控制台/CI 日志
+- 符合 Vim 官方测试的做法
 
 ### 3. Makefile 模板
 
@@ -177,15 +185,12 @@ MAKEFLAGS+=--no-print-directory
 
 TESTS := $(wildcard test-*)
 
-.PHONY: test clean $(TESTS)
+.PHONY: test $(TESTS)
 
 test: $(TESTS)
 
 $(TESTS):
 	$(MAKE) -C $@
-
-clean:
-	find . \( -name '*-errors.txt' -o -name 'error.log' -o -name 'test-output.txt' -o -name 'import-*.txt' \) -delete
 ```
 
 **子目录 `test/test-text/Makefile`:**
@@ -301,6 +306,7 @@ set nocompatible
 set noswapfile
 set nomore
 set hidden
+set verbose=1
 
 runtime! syntax/markdown.vim
 
