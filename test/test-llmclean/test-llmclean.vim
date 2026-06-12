@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/llmclean.vim' as llmclean
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: quickui is loaded ---
 def Test_quickui_loaded()
     assert_true(exists('g:quickui_version'), 'vim-quickui should be loaded')

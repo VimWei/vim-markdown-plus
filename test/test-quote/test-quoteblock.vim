@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/quote.vim' as quote
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: SetQuoteBlock single line ---
 def Test_set_quote_single()
     :%delete _

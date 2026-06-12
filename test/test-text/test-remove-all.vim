@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- RemoveAll: single-line tests ---
 
 def Test_remove_all_bold()

@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/code.vim' as code
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: UnsetBlock single codeblock ---
 def Test_unset_codeblock_single()
     :%delete _
@@ -213,7 +216,7 @@ def Test_set_codeblock_partial_range()
 enddef
 
 # ========== ToggleCodeBlock tests ==========
-# ToggleCodeBlock uses synID() (unavailable in -es) but also checks
+# ToggleCodeBlock uses synID() (available in -es with syntax loaded) and also checks
 # wrapper lines via regex, so both paths are testable:
 #   - Buffer with ``` wrappers → UnsetBlock path
 #   - Buffer without wrappers  → SetBlock path (needs feedkeys)

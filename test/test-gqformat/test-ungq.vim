@@ -2,6 +2,9 @@ vim9script
 
 source ../init.vim
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: single paragraph merge ---
 def Test_ungq_single_paragraph()
     :%delete _

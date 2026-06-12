@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/todo.vim' as todo
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: Convert normal list item to todo ---
 def Test_checkbox_toggle_normal_list()
     setline(1, '- Item text')

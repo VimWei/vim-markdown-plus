@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/link.vim' as link
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: wiki.vim is loaded ---
 def Test_wiki_vim_loaded()
     assert_true(exists('g:wiki_loaded'), 'wiki.vim should be loaded')
@@ -26,8 +29,8 @@ def Test_toggle_link_basic_call()
     setline(1, 'Test Page')
     
     # Simulate visual selection by setting '[ and '] marks
-    setpos("'[", [0, 1, 1, 0])
-    setpos("']", [0, 1, 9, 0])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 1, 9, 0])
     
     # Call ToggleLink - verify it doesn't crash
     try
@@ -46,8 +49,8 @@ def Test_remove_text_only_basic()
     setline(1, '[Link Text](https://example.com)')
     
     # Set selection to cover the link
-    setpos("'[", [0, 1, 1, 0])
-    setpos("']", [0, 1, 30, 0])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 1, 30, 0])
     
     try
         link.RemoveTextOnly('v')
@@ -65,8 +68,8 @@ def Test_toggle_link_cjk_basic()
     setline(1, '中文页面')
     
     # Set selection
-    setpos("'[", [0, 1, 1, 0])
-    setpos("']", [0, 1, 5, 0])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 1, 5, 0])
     
     try
         link.ToggleLink('wiki', 'v')

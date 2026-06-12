@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/utils.vim' as utils
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: IsLess basic comparison ---
 def Test_is_less_basic()
     assert_true(utils.IsLess([1, 2], [1, 3]))

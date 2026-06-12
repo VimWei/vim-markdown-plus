@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/utils.vim' as utils
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Comparison function tests ---
 
 def Test_is_less_basic()

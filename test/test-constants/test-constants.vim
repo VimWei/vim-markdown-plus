@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/constants.vim' as constants
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 def Test_text_styles_dict_structure()
     var expected_keys = ['markdownCode', 'markdownItalic', 'markdownItalicU',
         'markdownBold', 'markdownBoldU', 'markdownStrike', 'markdownMark',

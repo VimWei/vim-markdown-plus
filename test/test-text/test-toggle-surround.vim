@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- ToggleSurround: ADD tests (visual selection path) ---
 
 def Test_toggle_add_bold()

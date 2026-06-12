@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/todo.vim' as todo
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: MaturityNext [ ] -> [.] ---
 def Test_maturity_next_space_to_dot()
     setline(1, '- [ ] Item text')

@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/text.vim' as text
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: Bold surround single line ---
 def Test_bold_single_line()
     setline(1, 'Hello world')

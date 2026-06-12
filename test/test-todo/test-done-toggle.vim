@@ -3,6 +3,9 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/todo.vim' as todo
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: Toggle [ ] to [x] ---
 def Test_done_toggle_unchecked_to_checked()
     setline(1, '- [ ] Item text')

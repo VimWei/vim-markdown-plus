@@ -3,10 +3,13 @@ vim9script
 source ../init.vim
 import autoload '../../autoload/mplus/list.vim' as lst
 
+setlocal filetype=markdown
+setlocal syntax=markdown
+
 # --- Test: Change symbol from hyphen to star ---
 def Test_change_symbol_hyphen_to_star()
     setline(1, '- Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('*', 1)
     assert_equal('* Item one', getline(1))
 enddef
@@ -14,7 +17,7 @@ enddef
 # --- Test: Change symbol from star to plus ---
 def Test_change_symbol_star_to_plus()
     setline(1, '* Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('+', 1)
     assert_equal('+ Item one', getline(1))
 enddef
@@ -22,7 +25,7 @@ enddef
 # --- Test: Change symbol to numeric list ---
 def Test_change_symbol_to_number()
     setline(1, '- Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('1.', 1)
     assert_equal('1. Item one', getline(1))
 enddef
@@ -30,7 +33,7 @@ enddef
 # --- Test: Change symbol to alphabetic list ---
 def Test_change_symbol_to_alpha()
     setline(1, '- Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('a.', 1)
     assert_equal('a. Item one', getline(1))
 enddef
@@ -38,7 +41,7 @@ enddef
 # --- Test: Delete list symbol ---
 def Test_change_symbol_delete()
     setline(1, '- Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('d', 1)
     assert_equal('Item one', getline(1))
 enddef
@@ -46,7 +49,7 @@ enddef
 # --- Test: Add symbol to non-list line ---
 def Test_change_symbol_non_list()
     setline(1, 'Plain text')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('-', 1)
     assert_equal('- Plain text', getline(1))
 enddef
@@ -54,7 +57,7 @@ enddef
 # --- Test: Change symbol on indented list item ---
 def Test_change_symbol_indented()
     setline(1, '  - Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('*', 1)
     assert_equal('  * Item one', getline(1))
 enddef
@@ -62,7 +65,7 @@ enddef
 # --- Test: Change symbol on multiple lines ---
 def Test_change_symbol_multiple_lines()
     setline(1, ['- Item one', '- Item two', '- Item three'])
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('*', 3)
     assert_equal('* Item one', getline(1))
     assert_equal('* Item two', getline(2))
@@ -72,7 +75,7 @@ enddef
 # --- Test: Change symbol with CJK text ---
 def Test_change_symbol_cjk()
     setline(1, '- 中文项目')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('*', 1)
     assert_equal('* 中文项目', getline(1))
 enddef
@@ -106,7 +109,7 @@ enddef
 # --- Test: Delete symbol from indented list item ---
 def Test_change_symbol_delete_indented()
     setline(1, '  - Item one')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('d', 1)
     assert_equal('  Item one', getline(1))
 enddef
@@ -114,7 +117,7 @@ enddef
 # --- Test: Change symbol preserves content after symbol ---
 def Test_change_symbol_preserves_content()
     setline(1, '- Item with **bold** and *italic*')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('+', 1)
     assert_equal('+ Item with **bold** and *italic*', getline(1))
 enddef
@@ -122,7 +125,7 @@ enddef
 # --- Test: Change symbol on numeric list to star ---
 def Test_change_symbol_numeric_to_star()
     setline(1, '1. First item')
-    cursor(1, 1)
+    setcursorcharpos(1, 1)
     lst.ChangeSymbol('*', 1)
     assert_equal('* First item', getline(1))
 enddef
