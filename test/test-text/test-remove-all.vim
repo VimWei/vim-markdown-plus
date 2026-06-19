@@ -104,6 +104,35 @@ enddef
 
 # --- RemoveSurrounding: tests (uses synID via IsInRange) ---
 
+# --- RemoveAll: CJK linewise tests (regression: cursor byte-column bug) ---
+
+def Test_remove_all_cjk_bold_linewise()
+    syntax sync fromstart
+    setline(1, '**在已有 Windows Terminal 窗口的新 tab 中打开**')
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 1, strchars(getline(1)), 0])
+    text.RemoveAll('markdownRemoveAll', 'line')
+    assert_equal('在已有 Windows Terminal 窗口的新 tab 中打开', getline(1))
+enddef
+
+def Test_remove_all_cjk_italic_linewise()
+    syntax sync fromstart
+    setline(1, '*中文斜体测试*')
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 1, strchars(getline(1)), 0])
+    text.RemoveAll('markdownRemoveAll', 'line')
+    assert_equal('中文斜体测试', getline(1))
+enddef
+
+def Test_remove_all_cjk_strike_linewise()
+    syntax sync fromstart
+    setline(1, '~~中文删除线测试~~')
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 1, strchars(getline(1)), 0])
+    text.RemoveAll('markdownRemoveAll', 'line')
+    assert_equal('中文删除线测试', getline(1))
+enddef
+
 def Test_remove_surrounding_bold()
     syntax sync fromstart
     setline(1, '**Hello** world')
@@ -162,6 +191,9 @@ g:RunTestInBuffer(function('Test_remove_all_multiple_styles'))
 g:RunTestInBuffer(function('Test_remove_all_multiline_bold'))
 g:RunTestInBuffer(function('Test_remove_all_multiline_mixed'))
 g:RunTestInBuffer(function('Test_remove_all_emoji_bold'))
+g:RunTestInBuffer(function('Test_remove_all_cjk_bold_linewise'))
+g:RunTestInBuffer(function('Test_remove_all_cjk_italic_linewise'))
+g:RunTestInBuffer(function('Test_remove_all_cjk_strike_linewise'))
 g:RunTestInBuffer(function('Test_remove_surrounding_bold'))
 g:RunTestInBuffer(function('Test_remove_surrounding_italic'))
 g:RunTestInBuffer(function('Test_remove_surrounding_strike'))

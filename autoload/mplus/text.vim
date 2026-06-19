@@ -338,16 +338,18 @@ export def RemoveAll(style: string, type: string = '')
     # line and column of point A
     var lA = line("'[")
     var cA = type == 'line' ? 1 : charcol("'[")
+    var byte_cA = type == 'line' ? 1 : col("'[")
     # echomsg '[RemoveAll] line and column of point A: [' .. lA .. ',' .. cA .. ']'
 
     # line and column of point B
     var lB = line("']")
     var cB = type == 'line' ? strchars(getline(lB)) : charcol("']")
+    var byte_cB = type == 'line' ? strlen(getline(lB)) : col("']")
     # echomsg '[RemoveAll] line and column of point B: [' .. lB .. ',' .. cB .. ']'
 
     # -------- SMART DELIMITERS BEGIN ---------------------------
     # Check if A falls in an existing interval
-    cursor(lA, cA)
+    cursor(lA, byte_cA)
     var cA_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     var open_delim = ''
     var old_right_delimiter = ''
@@ -373,7 +375,7 @@ export def RemoveAll(style: string, type: string = '')
     endif
 
     # Check if B falls in an existing interval
-    cursor(lB, cB)
+    cursor(lB, byte_cB)
     var cB_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
     var close_delim = ''
     var old_left_delimiter = ''
