@@ -86,6 +86,40 @@ export def SurroundSimple(style: string, type: string = '')
     endif
 enddef
 
+# _SetDelimitedLines -----------------------------------------------------{{{2
+def SetDelimitedLines(lA: number, cA: number, lB: number, cB: number,
+        toA: string, fromB: string, style: string)
+    if lA == lB
+        var A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
+        if style != 'markdownCode'
+            A_to_B = RemoveDelimiters(A_to_B)
+        endif
+        setline(lA, toA .. A_to_B .. fromB)
+    else
+        var afterA = strcharpart(getline(lA), cA - 1)
+        if style != 'markdownCode'
+            afterA = RemoveDelimiters(afterA)
+        endif
+        setline(lA, toA .. afterA)
+
+        var beforeB = strcharpart(getline(lB), 0, cB)
+        if style != 'markdownCode'
+            beforeB = RemoveDelimiters(beforeB)
+        endif
+        setline(lB, beforeB .. fromB)
+
+        var ii = 1
+        while lA + ii < lB
+            var middleline = getline(lA + ii)
+            if style != 'markdownCode'
+                middleline = RemoveDelimiters(middleline)
+            endif
+            setline(lA + ii, middleline)
+            ii += 1
+        endwhile
+    endif
+enddef
+
 # SurroundSmart ----------------------------------------------------------{{{2
 # Multibyte support: All line/column positions are 1-based character indices
 # Input: lA, cA, lB, cB (1-based, character)
@@ -223,58 +257,7 @@ export def SurroundSmart(style: string, type: string = '')
     # Next, we have to adjust the text between A and B, by removing all the
     # possible delimiters left between them.
 
-    # If on the same line
-    if lA == lB
-        # Overwrite everything that is in the middle
-        var A_to_B = ''
-        A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
-
-        # Overwrite existing styles in the middle by removing old delimiters
-        if style != 'markdownCode'
-            A_to_B = RemoveDelimiters(A_to_B)
-        endif
-        # echom $'toA: ' .. toA
-        # echom $'fromB: ' .. fromB
-        # echom $'A_to_B:' .. A_to_B
-        # echom '----------\n'
-
-        # Set the whole line
-        setline(lA, toA .. A_to_B .. fromB)
-
-    else
-        # Set line A
-        var afterA = strcharpart(getline(lA), cA - 1)
-
-        if style != 'markdownCode'
-            afterA = RemoveDelimiters(afterA)
-        endif
-
-        var lineA = toA .. afterA
-        setline(lA, lineA)
-
-        # Set line B
-        var beforeB = strcharpart(getline(lB), 0, cB)
-
-        if style != 'markdownCode'
-            beforeB = RemoveDelimiters(beforeB)
-        endif
-
-        var lineB = beforeB .. fromB
-        setline(lB, lineB)
-
-        # Fix intermediate lines
-        var ii = 1
-        while lA + ii < lB
-            var middleline = getline(lA + ii)
-
-            if style != 'markdownCode'
-                middleline = RemoveDelimiters(middleline)
-            endif
-
-            setline(lA + ii, middleline)
-            ii += 1
-        endwhile
-    endif
+    SetDelimitedLines(lA, cA, lB, cB, toA, fromB, style)
 enddef
 
 # Remove -----------------------------------------------------------------{{{1
@@ -436,56 +419,5 @@ export def RemoveAll(style: string, type: string = '')
     # echomsg '[RemoveAll] SMART DELIMITERS processed.'
     # ------- SMART DELIMITERS PART END -----------
 
-    # If on the same line
-    if lA == lB
-        # Overwrite everything that is in the middle
-        var A_to_B = ''
-        A_to_B = strcharpart(getline(lA), cA - 1, cB - cA + 1)
-
-        # Overwrite existing styles in the middle by removing old delimiters
-        if style != 'markdownCode'
-            A_to_B = RemoveDelimiters(A_to_B)
-        endif
-        # echom $'toA: ' .. toA
-        # echom $'fromB: ' .. fromB
-        # echom $'A_to_B:' .. A_to_B
-        # echom '----------\n'
-
-        # Set the whole line
-        setline(lA, toA .. A_to_B .. fromB)
-
-    else
-        # Set line A
-        var afterA = strcharpart(getline(lA), cA - 1)
-
-        if style != 'markdownCode'
-            afterA = RemoveDelimiters(afterA)
-        endif
-
-        var lineA = toA .. afterA
-        setline(lA, lineA)
-
-        # Set line B
-        var beforeB = strcharpart(getline(lB), 0, cB)
-
-        if style != 'markdownCode'
-            beforeB = RemoveDelimiters(beforeB)
-        endif
-
-        var lineB = beforeB .. fromB
-        setline(lB, lineB)
-
-        # Fix intermediate lines
-        var ii = 1
-        while lA + ii < lB
-            var middleline = getline(lA + ii)
-
-            if style != 'markdownCode'
-                middleline = RemoveDelimiters(middleline)
-            endif
-
-            setline(lA + ii, middleline)
-            ii += 1
-        endwhile
-    endif
+    SetDelimitedLines(lA, cA, lB, cB, toA, fromB, style)
 enddef

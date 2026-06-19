@@ -96,45 +96,6 @@ export const TEXT_STYLES_DICT = {
   open_regex: UNDERLINE_OPEN_REGEX, close_regex: UNDERLINE_CLOSE_REGEX },
 }
 
-export const CODE_OPEN_DICT = {[TEXT_STYLES_DICT.markdownCode.open_delim]:
-  TEXT_STYLES_DICT.markdownCode.open_regex}
-export const CODE_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownCode.close_delim]:
-  TEXT_STYLES_DICT.markdownCode.close_regex}
-export const ITALIC_OPEN_DICT = {[TEXT_STYLES_DICT.markdownItalic.open_delim]:
-  TEXT_STYLES_DICT.markdownItalic.open_regex}
-export const ITALIC_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownItalic.close_delim]:
-  TEXT_STYLES_DICT.markdownItalic.close_regex}
-export const ITALIC_U_OPEN_DICT =
-  {[TEXT_STYLES_DICT.markdownItalicU.open_delim]:
-  TEXT_STYLES_DICT.markdownItalicU.open_regex}
-export const ITALIC_U_CLOSE_DICT =
-  {[TEXT_STYLES_DICT.markdownItalicU.close_delim]:
-  TEXT_STYLES_DICT.markdownItalicU.close_regex}
-export const BOLD_OPEN_DICT = {[TEXT_STYLES_DICT.markdownBold.open_delim]:
-  TEXT_STYLES_DICT.markdownBold.open_regex}
-export const BOLD_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownBold.close_delim]:
-  TEXT_STYLES_DICT.markdownBold.close_regex}
-export const BOLD_U_OPEN_DICT = {[TEXT_STYLES_DICT.markdownBoldU.open_delim]:
-  TEXT_STYLES_DICT.markdownBoldU.open_regex}
-export const BOLD_U_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownBoldU.close_delim]:
-  TEXT_STYLES_DICT.markdownBoldU.close_regex}
-export const STRIKE_OPEN_DICT = {[TEXT_STYLES_DICT.markdownStrike.open_delim]:
-  TEXT_STYLES_DICT.markdownStrike.open_regex}
-export const STRIKE_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownStrike.close_delim]:
-  TEXT_STYLES_DICT.markdownStrike.close_regex}
-export const MARK_OPEN_DICT = {[TEXT_STYLES_DICT.markdownMark.open_delim]:
-  TEXT_STYLES_DICT.markdownMark.open_regex}
-export const MARK_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownMark.close_delim]:
-  TEXT_STYLES_DICT.markdownMark.close_regex}
-export const LINK_OPEN_DICT = {[TEXT_STYLES_DICT.markdownLinkText.open_delim]:
-  TEXT_STYLES_DICT.markdownLinkText.open_regex}
-export const LINK_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownLinkText.close_delim]:
-  TEXT_STYLES_DICT.markdownLinkText.close_regex}
-export const UNDERLINE_OPEN_DICT = {[TEXT_STYLES_DICT.markdownUnderline.open_delim]:
-  TEXT_STYLES_DICT.markdownUnderline.open_regex}
-export const UNDERLINE_CLOSE_DICT = {[TEXT_STYLES_DICT.markdownUnderline.close_delim]:
-  TEXT_STYLES_DICT.markdownUnderline.close_regex}
-
 # TODO on the delimiter synIDattr(synID(line("."), col("."), 1), "name")
 # return markdownCodeDelimiter instead of
 # markdownCodeBlockDelimiter. Perhaps it is a bug in vim-markdown. Hence, we
