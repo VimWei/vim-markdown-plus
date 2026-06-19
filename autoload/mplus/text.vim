@@ -5,23 +5,41 @@ import autoload './utils.vim' as utils
 
 # ToggleSurround ---------------------------------------------------------{{{1
 export def ToggleSurround(style: string, type: string = '')
-    # echomsg '```echomsg ------------------------------------'
-    # echomsg '[ToggleSurround] start: ' .. style
     if style == 'markdownRemoveAll'
         RemoveAll(style, type)
         return
     endif
-    # echomsg '[ToggleSurround] check cursor IsInRange ...'
     var range_info = utils.IsInRange()
     if !empty(range_info) && keys(range_info)[0] == style
-        # echomsg '[ToggleSurround] Will call RemoveSurrounding'
-        RemoveSurrounding(range_info)
+        # If visual selection extends beyond the found style range,
+        # use SurroundSmart to extend the style instead of removing it.
+        if type != '' && SelectionExtendsBeyond(range_info, style, type)
+            SurroundSmart(style, type)
+        else
+            RemoveSurrounding(range_info)
+        endif
     else
-        # echomsg '[ToggleSurround] Will call SurroundSmart'
         SurroundSmart(style, type)
     endif
-    # echomsg '```'
-    # Redir#redir('messages', 0, 0, 0)
+enddef
+
+def SelectionExtendsBeyond(range_info: dict<list<list<number>>>, style: string, type: string): bool
+    var interval = values(range_info)[0]
+    var open_delim_len = strchars(constants.TEXT_STYLES_DICT[style].open_delim)
+    var close_delim_len = strchars(constants.TEXT_STYLES_DICT[style].close_delim)
+
+    # Found range with delimiters:
+    # Open delimiter spans [cA - open_delim_len, cA - 1]
+    # Close delimiter spans [cB + 1, cB + close_delim_len]
+    # interval[0][1] is character position after open_delim (content start)
+    # interval[1][1] is character position before close_delim (content end)
+    var range_start_col = interval[0][1] - open_delim_len
+    var range_end_col = interval[1][1] + close_delim_len
+
+    var sel_start_col = type == 'line' ? 1 : charcol("'[")
+    var sel_end_col = type == 'line' ? strchars(getline(line("']"))) : charcol("']")
+
+    return sel_start_col < range_start_col || sel_end_col > range_end_col
 enddef
 
 # Surround ---------------------------------------------------------------{{{1
@@ -122,7 +140,7 @@ export def SurroundSmart(style: string, type: string = '')
     # so that all the styles are visible
 
     # Check if A falls in an existing interval
-    cursor(lA, cA)
+    setcursorcharpos(lA, cA)
     var old_right_delimiter = ''
     # echomsg '[SurroundSmart] check point A IsInRange ...'
     var found_interval = utils.IsInRange()
@@ -154,15 +172,23 @@ export def SurroundSmart(style: string, type: string = '')
             .. $'{old_right_delimiter} {open_delim}'
     elseif !empty(found_interval) && old_right_delimiter == open_delim
         # If the found interval is a text style equal to the one you want to set,
-        # i.e. you would end up in adjacent delimiters like ** ** => Remove both
-        toA = strcharpart(getline(lA), 0, cA - 1)
+        # i.e. you would end up in adjacent delimiters like ** ** => Remove both.
+        # Only strip when the found delimiter is outside A-B range;
+        # if it is within A-B, RemoveDelimiters will handle it.
+        var found_content_start = values(found_interval)[0][0][1]
+        var found_open_start = found_content_start - strchars(old_right_delimiter)
+        if found_open_start < cA
+            toA = strcharpart(getline(lA), 0, cA - 1)
+        else
+            toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
+        endif
     else
         # Force space
         toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
     endif
 
     # Check if B falls in an existing interval
-    cursor(lB, cB)
+    setcursorcharpos(lB, cB)
     var old_left_delimiter = ''
 
     # echomsg '[SurroundSmart] check point B IsInRange ...'
@@ -178,7 +204,15 @@ export def SurroundSmart(style: string, type: string = '')
         fromB = $'{close_delim} {old_left_delimiter}'
             .. strcharpart(getline(lB), cB)->substitute('^\s*', '', '')
     elseif !empty(found_interval) && old_left_delimiter == close_delim
-        fromB = strcharpart(getline(lB), cB)
+        # Only strip when the found close delimiter is outside A-B range;
+        # if it is within A-B, RemoveDelimiters will handle it.
+        var found_content_end = values(found_interval)[0][1][1]
+        var found_close_end = found_content_end + strchars(old_left_delimiter)
+        if found_close_end > cB
+            fromB = strcharpart(getline(lB), cB)
+        else
+            fromB = close_delim .. strcharpart(getline(lB), cB)
+        endif
     else
         fromB = close_delim .. strcharpart(getline(lB), cB)
     endif

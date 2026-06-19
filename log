@@ -1,0 +1,5 @@
+
+chdir(C:\Apps\vim-init\pack\mydev\opt\vim-markdown-plus)
+".txt" [新文件]
+处理 command line..command line 时发生错误:
+E1094: 只能在脚本中导入

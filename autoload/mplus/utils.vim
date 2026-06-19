@@ -59,8 +59,8 @@ export def IsInRange(): dict<list<list<number>>>
     # Try left within delimiter length
     for i in range(1, open_len)
       if orig_col - i < 1 | continue | endif
-      call cursor(orig_line, orig_col - i)
-      var left_style = synIDattr(synID(line('.'), charcol('.'), 1), 'name')
+      setcursorcharpos(orig_line, orig_col - i)
+      var left_style = synIDattr(synID(line('.'), byteidx(getline('.'), charcol('.') - 1) + 1, 1), 'name')
       # echomsg '[IsInRange] left_style: ' .. left_style
       if left_style !~ 'Delimiter' && left_style != ''
         found = 1
@@ -70,8 +70,8 @@ export def IsInRange(): dict<list<list<number>>>
     # Try right within delimiter length (only if not found on left)
     if !found
       for i in range(1, close_len)
-        call cursor(orig_line, orig_col + i)
-        var right_style = synIDattr(synID(line('.'), charcol('.'), 1), 'name')
+        setcursorcharpos(orig_line, orig_col + i)
+        var right_style = synIDattr(synID(line('.'), byteidx(getline('.'), charcol('.') - 1) + 1, 1), 'name')
         # echomsg '[IsInRange] right_style: ' .. right_style
         if right_style !~ 'Delimiter' && right_style != ''
           found = 1
@@ -81,11 +81,11 @@ export def IsInRange(): dict<list<list<number>>>
     endif
     # If found, cursor is now at content area; do not restore
     if found
-      text_style = synIDattr(synID(line('.'), charcol('.'), 1), 'name')
+      text_style = synIDattr(synID(line('.'), byteidx(getline('.'), charcol('.') - 1) + 1, 1), 'name')
       # echomsg '[IsInRange] text_style within range: ' .. text_style
     else
       # If not found, keep original position and style
-      call cursor(orig_line, orig_col)
+      setcursorcharpos(orig_line, orig_col)
     endif
   endif
 
