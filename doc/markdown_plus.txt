@@ -294,6 +294,10 @@ The dialog supports two modes:
 - Normal mode: Clean the entire file
 - Visual mode: Clean only the selected range (supports both `v` and `V`)
 
+Dialog buttons (two rows):
+- Row 1: `All` (check all), `Default` (restore defaults), `None` (uncheck all)
+- Row 2: `Execute` (run selected operations), `Cancel` (exit without changes)
+
 The following operations are available:
 
  1. Remove all markdown text style (bold, italic, strikethrough, inline code)

@@ -130,20 +130,43 @@ export def Run(firstline: number, lastline: number)
         endfor
         add(dialog_items, {
             type: 'button',
-            name: 'action',
+            name: 'actions',
+            items: [' &All ', ' &Default ', ' &None '],
+        })
+        add(dialog_items, {
+            type: 'button',
+            name: 'confirm',
             focus: 0,
-            items: [' &Execute ', ' &Reset ', ' &Cancel '],
+            items: [' &Execute ', ' &Cancel '],
         })
 
-        var result = quickui#dialog#open(dialog_items, {title: 'LLMClean', hide_system_cursor: 0})
+        var result = quickui#dialog#open(dialog_items, {title: 'LLMClean', hide_system_cursor: 0, btn_equal_width: 0})
 
-        if result.button_index < 0 || result.button_index == 2
+        # ESC 或 Cancel 按钮
+        if result.button_index < 0 || (result.button == 'confirm' && result.button_index == 1)
             return
         endif
 
-        if result.button_index == 1
+        # All 按钮 - 全选
+        if result.button == 'actions' && result.button_index == 0
+            for i in range(items->len())
+                items[i].enabled = true
+            endfor
+            continue
+        endif
+
+        # Default 按钮 - 恢复默认值
+        if result.button == 'actions' && result.button_index == 1
             for i in range(items->len())
                 items[i].enabled = defaults[i]
+            endfor
+            continue
+        endif
+
+        # None 按钮 - 取消全部
+        if result.button == 'actions' && result.button_index == 2
+            for i in range(items->len())
+                items[i].enabled = false
             endfor
             continue
         endif
