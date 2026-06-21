@@ -364,60 +364,116 @@ export def RemoveAll(style: string, type: string = '')
     var byte_cB = type == 'line' ? strlen(getline(lB)) : col("']")
     # echomsg '[RemoveAll] line and column of point B: [' .. lB .. ',' .. cB .. ']'
 
-    # -------- SMART DELIMITERS BEGIN ---------------------------
-    # Check if A falls in an existing interval
-    cursor(lA, byte_cA)
-    var cA_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
-    var open_delim = ''
-    var old_right_delimiter = ''
-    # echomsg '[RemoveAll] check point A IsInRange ...'
-    var found_interval = utils.IsInRange()
-    if !empty(found_interval)
-        var found_style = keys(found_interval)[0]
-        old_right_delimiter = constants.TEXT_STYLES_DICT[found_style].open_delim
-    endif
-    if cA_text_style =~ 'Delimiter'
-        open_delim = old_right_delimiter
-    endif
+    # --- Find blank lines in [lA, lB] to split into paragraph segments ---
+    var blank_lines: list<number> = []
+    var saved_curpos = getcursorcharpos()
+    cursor(lA, 1)
+    while true
+        var found = search('^\s*$', 'W', lB)
+        if found == 0 || found > lB
+            break
+        endif
+        blank_lines->add(found)
+        if found + 1 > lB
+            break
+        endif
+        cursor(found + 1, 1)
+    endwhile
+    setcursorcharpos(saved_curpos[1 : 2])
 
-    var toA = ''
-    if !empty(found_interval) && old_right_delimiter != open_delim
-        toA = strcharpart(getline(lA), 0, cA - 1)->substitute('\s*$', '', '')
-            .. $'{old_right_delimiter}'
-    elseif !empty(found_interval) && old_right_delimiter == open_delim
-        toA = strcharpart(getline(lA), 0, cA - 1)
+    # Build segment list: each segment is [seg_lA, seg_cA, seg_lB, seg_cB]
+    # seg_cB is inclusive (the last character position), matching charcol() convention
+    var segments: list<list<number>> = []
+    if empty(blank_lines)
+        segments->add([lA, cA, lB, cB])
     else
-        # Force space
-        toA = strcharpart(getline(lA), 0, cA - 1) .. open_delim
+        # First segment: lA to first blank line - 1
+        if lA < blank_lines[0]
+            segments->add([lA, cA, blank_lines[0] - 1, strchars(getline(blank_lines[0] - 1))])
+        endif
+        # Middle segments: between consecutive blank lines
+        for ii in range(len(blank_lines) - 1)
+            var seg_start = blank_lines[ii] + 1
+            var seg_end = blank_lines[ii + 1] - 1
+            if seg_start <= seg_end && seg_start >= lA && seg_end <= lB
+                segments->add([seg_start, 1, seg_end, strchars(getline(seg_end))])
+            endif
+        endfor
+        # Last segment: last blank line + 1 to lB
+        var last_start = blank_lines[-1] + 1
+        if last_start <= lB
+            segments->add([last_start, 1, lB, cB])
+        endif
     endif
 
-    # Check if B falls in an existing interval
-    cursor(lB, byte_cB)
-    var cB_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
-    var close_delim = ''
-    var old_left_delimiter = ''
-    # echomsg '[RemoveAll] check point B IsInRange ...'
-    found_interval = utils.IsInRange()
-    if !empty(found_interval)
-        var found_style = keys(found_interval)[0]
-        old_left_delimiter = constants.TEXT_STYLES_DICT[found_style].close_delim
-    endif
-    if cB_text_style =~ 'Delimiter'
-        close_delim = old_left_delimiter
-    endif
+    # Process each segment independently
+    for seg in segments
+        var seg_lA = seg[0]
+        var seg_cA = seg[1]
+        var seg_lB = seg[2]
+        var seg_cB = seg[3]
 
-    var fromB = ''
-    if !empty(found_interval) && old_left_delimiter != close_delim
-        # Move old_left_delimiter "outside"
-        fromB = $'{old_left_delimiter}'
-            .. strcharpart(getline(lB), cB)->substitute('^\s*', '', '')
-    elseif !empty(found_interval) && old_left_delimiter == close_delim
-        fromB = strcharpart(getline(lB), cB)
-    else
-        fromB = strcharpart(getline(lB), cB)
-    endif
-    # echomsg '[RemoveAll] SMART DELIMITERS processed.'
-    # ------- SMART DELIMITERS PART END -----------
+        # Always extend segment end to end-of-line so that trailing delimiters
+        # are included in beforeB (processed by RemoveDelimiters) rather than fromB.
+        # RemoveDelimiters will strip all delimiters from the content, which is correct
+        # for the RemoveAll operation.
+        var exclusive_cB = strchars(getline(seg_lB)) + 1
 
-    SetDelimitedLines(lA, cA, lB, cB, toA, fromB, style)
+        var seg_byte_cA = type == 'line' ? 1 : byteidx(getline(seg_lA), seg_cA - 1) + 1
+        var seg_byte_cB = strlen(getline(seg_lB))
+
+        # -------- SMART DELIMITERS BEGIN ---------------------------
+        # Check if segment start falls in an existing interval
+        cursor(seg_lA, seg_byte_cA)
+        var cA_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
+        var open_delim = ''
+        var old_right_delimiter = ''
+        var found_interval = utils.IsInRange()
+        if !empty(found_interval)
+            var found_style = keys(found_interval)[0]
+            old_right_delimiter = constants.TEXT_STYLES_DICT[found_style].open_delim
+        endif
+        if cA_text_style =~ 'Delimiter'
+            open_delim = old_right_delimiter
+        endif
+
+        var toA = ''
+        if !empty(found_interval) && old_right_delimiter != open_delim
+            toA = strcharpart(getline(seg_lA), 0, seg_cA - 1)->substitute('\s*$', '', '')
+                .. $'{old_right_delimiter}'
+        elseif !empty(found_interval) && old_right_delimiter == open_delim
+            toA = strcharpart(getline(seg_lA), 0, seg_cA - 1)
+        else
+            # Force space
+            toA = strcharpart(getline(seg_lA), 0, seg_cA - 1) .. open_delim
+        endif
+
+        # Check if segment end falls in an existing interval
+        cursor(seg_lB, seg_byte_cB)
+        var cB_text_style = synIDattr(synID(line("."), byteidx(getline('.'), charcol(".") - 1) + 1, 1), "name")
+        var close_delim = ''
+        var old_left_delimiter = ''
+        found_interval = utils.IsInRange()
+        if !empty(found_interval)
+            var found_style = keys(found_interval)[0]
+            old_left_delimiter = constants.TEXT_STYLES_DICT[found_style].close_delim
+        endif
+        if cB_text_style =~ 'Delimiter'
+            close_delim = old_left_delimiter
+        endif
+
+        var fromB = ''
+        if !empty(found_interval) && old_left_delimiter != close_delim
+            # Move old_left_delimiter "outside"
+            fromB = $'{old_left_delimiter}'
+                .. strcharpart(getline(seg_lB), exclusive_cB)->substitute('^\s*', '', '')
+        elseif !empty(found_interval) && old_left_delimiter == close_delim
+            fromB = strcharpart(getline(seg_lB), exclusive_cB)
+        else
+            fromB = strcharpart(getline(seg_lB), exclusive_cB)
+        endif
+        # ------- SMART DELIMITERS PART END -----------
+
+        SetDelimitedLines(seg_lA, seg_cA, seg_lB, exclusive_cB, toA, fromB, style)
+    endfor
 enddef

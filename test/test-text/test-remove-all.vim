@@ -102,6 +102,91 @@ def Test_remove_all_emoji_bold()
     assert_equal('Hello😀世界', getline(1))
 enddef
 
+# --- RemoveAll: multi-paragraph tests ---
+
+def Test_remove_all_two_paragraphs()
+    syntax sync fromstart
+    setline(1, ['**Hello** world', '', '*foo* bar'])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 3, 8, 0])
+    text.RemoveAll('markdownRemoveAll')
+    assert_equal('Hello world', getline(1))
+    assert_equal('', getline(2))
+    assert_equal('foo bar', getline(3))
+enddef
+
+def Test_remove_all_six_paragraphs()
+    syntax sync fromstart
+    setline(1, [
+        \ '**para1**',
+        \ '',
+        \ '*para2*',
+        \ '',
+        \ '~~para3~~',
+        \ '',
+        \ '==para4==',
+        \ '',
+        \ '`para5`',
+        \ '',
+        \ '**para6**'
+        \ ])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 11, 10, 0])
+    text.RemoveAll('markdownRemoveAll')
+    assert_equal('para1', getline(1))
+    assert_equal('', getline(2))
+    assert_equal('para2', getline(3))
+    assert_equal('', getline(4))
+    assert_equal('para3', getline(5))
+    assert_equal('', getline(6))
+    assert_equal('para4', getline(7))
+    assert_equal('', getline(8))
+    assert_equal('para5', getline(9))
+    assert_equal('', getline(10))
+    assert_equal('para6', getline(11))
+enddef
+
+def Test_remove_all_mixed_styles_paragraphs()
+    syntax sync fromstart
+    setline(1, [
+        \ '**bold** and *italic*',
+        \ '',
+        \ '~~strike~~ and ==mark=='
+        \ ])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 3, 22, 0])
+    text.RemoveAll('markdownRemoveAll')
+    assert_equal('strike and mark', getline(3))
+enddef
+
+def Test_remove_all_cjk_paragraphs()
+    syntax sync fromstart
+    setline(1, [
+        \ '**粗体**和*斜体*',
+        \ '',
+        \ '~~删除线~~和==标记=='
+        \ ])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 3, 10, 0])
+    text.RemoveAll('markdownRemoveAll')
+    assert_equal('粗体和斜体', getline(1))
+    assert_equal('', getline(2))
+    assert_equal('删除线和标记', getline(3))
+enddef
+
+def Test_remove_all_selection_starts_ends_blank()
+    syntax sync fromstart
+    setline(1, ['', '**Hello**', '', '**world**', ''])
+    setcharpos("'[", [0, 1, 1, 0])
+    setcharpos("']", [0, 5, 1, 0])
+    text.RemoveAll('markdownRemoveAll')
+    assert_equal('', getline(1))
+    assert_equal('Hello', getline(2))
+    assert_equal('', getline(3))
+    assert_equal('world', getline(4))
+    assert_equal('', getline(5))
+enddef
+
 # --- RemoveSurrounding: tests (uses synID via IsInRange) ---
 
 # --- RemoveAll: CJK linewise tests (regression: cursor byte-column bug) ---
@@ -194,6 +279,11 @@ g:RunTestInBuffer(function('Test_remove_all_emoji_bold'))
 g:RunTestInBuffer(function('Test_remove_all_cjk_bold_linewise'))
 g:RunTestInBuffer(function('Test_remove_all_cjk_italic_linewise'))
 g:RunTestInBuffer(function('Test_remove_all_cjk_strike_linewise'))
+g:RunTestInBuffer(function('Test_remove_all_two_paragraphs'))
+g:RunTestInBuffer(function('Test_remove_all_six_paragraphs'))
+g:RunTestInBuffer(function('Test_remove_all_mixed_styles_paragraphs'))
+g:RunTestInBuffer(function('Test_remove_all_cjk_paragraphs'))
+g:RunTestInBuffer(function('Test_remove_all_selection_starts_ends_blank'))
 g:RunTestInBuffer(function('Test_remove_surrounding_bold'))
 g:RunTestInBuffer(function('Test_remove_surrounding_italic'))
 g:RunTestInBuffer(function('Test_remove_surrounding_strike'))
