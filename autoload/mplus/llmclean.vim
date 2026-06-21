@@ -135,7 +135,7 @@ export def Run(firstline: number, lastline: number)
             items: [' &Execute ', ' &Reset ', ' &Cancel '],
         })
 
-        var result = quickui#dialog#open(dialog_items, {title: 'LLMClean'})
+        var result = quickui#dialog#open(dialog_items, {title: 'LLMClean', hide_system_cursor: 0})
 
         if result.button_index < 0 || result.button_index == 2
             return
